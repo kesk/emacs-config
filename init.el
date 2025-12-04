@@ -59,22 +59,7 @@
   :init
   (persp-mode)
   :custom
-  (persp-mode-prefix-key (kbd "C-c p"))
-  :config
-  ;; Integrate with consult for buffer switching
-  (use-package consult
-    :bind (("C-x b" . consult-buffer)
-           ("C-x 4 b" . consult-buffer-other-window)
-           ("C-x 5 b" . consult-buffer-other-frame)
-           ("C-x r b" . consult-bookmark)
-           ("M-y" . consult-yank-pop))
-    :hook (completion-list-mode . consult-preview-at-point-mode)
-    :config
-    (setq consult-project-function (lambda (_) (projectile-project-root)))
-    ;; Use consult-buffer to show buffers from current perspective by default
-    (consult-customize consult--source-buffer :hidden t :default nil)
-    (add-to-list 'consult-buffer-sources persp-consult-source)))
-    
+  (persp-mode-prefix-key (kbd "C-c p")))
 
 (use-package persp-projectile
   :after perspective)
@@ -199,10 +184,17 @@
 
 (use-package consult
   :after vertico
-  :config)
-  ;; Optionally customize consult's behavior
-  ;; For example, to enable consult-line to search current buffer:
-  ;; (setq consult-line-start-from-top-window t)
+  :bind (("C-x b" . consult-buffer)
+         ("C-x 4 b" . consult-buffer-other-window)
+         ("C-x 5 b" . consult-buffer-other-frame)
+         ("C-x r b" . consult-bookmark)
+         ("M-y" . consult-yank-pop))
+  :hook (completion-list-mode . consult-preview-at-point-mode)
+  :config
+  (setq consult-project-function (lambda (_) (projectile-project-root)))
+  ;; Use consult-buffer to show buffers from current perspective by default
+  (consult-customize consult--source-buffer :hidden t :default nil)
+  (add-to-list 'consult-buffer-sources persp-consult-source))
   
 
 (use-package marginalia
