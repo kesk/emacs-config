@@ -17,6 +17,11 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+;;; Separate custom-file to keep init.el clean
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
 ;;; 2. EVIL MODE (Vim Keybindings)
 (use-package evil
   :init
@@ -80,7 +85,18 @@
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
-;;; 2.0.7 GENERAL (Keybindings & Leader Key)
+;;; 2.0.7 GIT GUTTER (Diff indicators)
+(use-package git-gutter
+  :config
+  (global-git-gutter-mode +1))
+
+(use-package git-gutter-fringe
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+
+;;; 2.0.8 GENERAL (Keybindings & Leader Key)
 (use-package general
   :after evil
   :config
@@ -93,6 +109,7 @@
   (my-leader-def
     "f"  '(:ignore t :which-key "files")
     "ff" '(find-file :which-key "find file")
+    "fd" '(diff-buffer-with-file :which-key "diff with file")
     "fr" '(consult-recent-file :which-key "recent files")
     "/" '(consult-line :which-key "search buffer")
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
@@ -106,6 +123,10 @@
 
     "g"  '(:ignore t :which-key "git")
     "gg" '(magit-status :which-key "magit status")
+    "gG" '(magit-status-here :which-key "magit status here")
+    "gd" '(magit-diff-buffer-file :which-key "diff with file")
+    "gj" '(git-gutter:next-hunk :which-key "next change")
+    "gk" '(git-gutter:previous-hunk :which-key "previous change")
 
     "p" '(:ignore t :which-key "project")
     "pp" '(projectile-persp-switch-project :which-key "switch project")
@@ -139,6 +160,24 @@
   :bind (:map vertico-map
               ("C-j" . vertico-next)
               ("C-k" . vertico-previous)))
+
+;;; 2.3 CORFU (Auto-completion)
+(use-package corfu
+  :init
+  (global-corfu-mode)
+  :custom
+  (corfu-auto t)                 ;; Enable auto completion
+  (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
+  (corfu-preselect 'prompt)      ;; Always preselect the prompt
+  (corfu-quit-no-match 'separator)
+  
+  :bind
+  (:map corfu-map
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous)
+        ("S-SPC" . corfu-insert-separator)))
 
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
@@ -180,6 +219,24 @@
 ;; Set initial frame size (width x height)
 (setq initial-frame-alist '((width . 150) (height . 60)))
 (setq default-frame-alist '((width . 150) (height . 60)))
+
+(set-face-attribute 'default nil :family "Fira Code" :height 120 :weight 'normal)
+(set-face-attribute 'fixed-pitch nil :family "Fira Code" :height 120 :weight 'normal)
+
+;;; Ligature support for Fira Code
+(use-package ligature
+  :config
+  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+                                       ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                                       "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                                       "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                                       "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                                       "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                                       "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                                       "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                                       "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                                       "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+  (global-ligature-mode t))
 
 (setq-default indent-tabs-mode nil) ; Prefer spaces for indentation
 
@@ -226,15 +283,6 @@
         doom-modeline-major-mode-icon t
         doom-modeline-hud nil))
 
-;;; 5. MODELINE
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :config
-  (setq doom-modeline-height 15        ;; You can adjust this
-        doom-modeline-buffer-file-name-style 'file
-        doom-modeline-major-mode-icon t
-        doom-modeline-hud nil))
-
 ;;; 6. LANGUAGE MODES
 (use-package tree-sitter
   :ensure t
@@ -269,23 +317,3 @@
   :config)
   ;; CIDER can take a moment to start, you might want to adjust idle timers
   ;; (setq cider-prompt-for-switch-to-repl t)
-  
-
-;;; init.el ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages nil))
-(custom-set-faces)
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- 
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- 
