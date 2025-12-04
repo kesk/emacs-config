@@ -1,0 +1,20 @@
+# Emacs auto-saves and backups
+*~
+\#*\#
+.\#*
+
+# Compiled Elisp
+*.elc
+
+# Native compiled elisp
+native-lisp/
+eln-cache/
+
+# Package directory
+/elpa/
+transient/
+.DS_Store
+tree-sitter/
+
+parinfer-rust/
+projectile-bookmarks.eld
