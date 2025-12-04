@@ -35,6 +35,17 @@
   :config
   (evil-collection-init))
 
+(use-package avy
+  :bind (("M-s" . avy-goto-char-2)
+         ("M-g M-g" . avy-goto-line))
+  :config
+  (setq avy-background nil))
+
+(use-package evil-snipe
+  :after evil
+  :config
+  (evil-snipe-mode +1))
+
 ;;; 2.0.2 PROJECTILE
 (use-package projectile
   :init
