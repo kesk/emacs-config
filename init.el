@@ -102,9 +102,17 @@
     :non-normal-prefix "C-SPC"
     :global-prefix "C-SPC")
 
+  (general-create-definer my-local-leader-def
+    :states '(normal visual insert emacs)
+    :prefix "ö"
+    :non-normal-prefix "C-ö"
+    :global-prefix "C-ö")
+
   (my-leader-def
     "f"  '(:ignore t :which-key "files")
     "ff" '(find-file :which-key "find file")
+    "fc" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init.el")
+    "fR" '((lambda () (interactive) (load-file user-init-file)) :which-key "reload init.el")
     "fd" '(diff-buffer-with-file :which-key "diff with file")
     "fr" '(consult-recent-file :which-key "recent files")
     "/" '(consult-line :which-key "search buffer")
@@ -137,6 +145,7 @@
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
+  (setq which-key-separator "  ") ;; Add more spacing between columns
   (which-key-setup-side-window-bottom))
 
 ;;; 2.2 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
@@ -304,7 +313,12 @@
   :after tree-sitter-langs
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
   :config
-  (setq tree-sitter-hl-default-modes '(clojure-ts-mode)))
+  (setq tree-sitter-hl-default-modes '(clojure-ts-mode))
+
+  (my-local-leader-def
+   :keymaps 'clojure-ts-mode-map
+   "j" '(cider-jack-in :which-key "jack in REPL")
+   "c" '(cider-connect :which-key "connect to REPL")))
 
 (use-package parinfer-rust-mode
   :after clojure-ts-mode
@@ -317,6 +331,15 @@
 
 (use-package cider
   :after clojure-ts-mode
-  :config)
+  :config
+  (setq cider-repl-display-help-banner nil) ; clean up the REPL
+  (setq cider-repl-pop-to-buffer-on-connect nil) ; keep focus in source file
+  
+  ;; Configure REPL window to be at the bottom with height 15
+  (add-to-list 'display-buffer-alist
+               '("\\*cider-repl"
+                 (display-buffer-reuse-window display-buffer-in-side-window)
+                 (side . bottom)
+                 (window-height . 15))))
   ;; CIDER can take a moment to start, you might want to adjust idle timers
   ;; (setq cider-prompt-for-switch-to-repl t)
