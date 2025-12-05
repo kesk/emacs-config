@@ -85,6 +85,14 @@
 (use-package persp-projectile
   :after perspective)
 
+;;; 2.0.5.5 EDIFF
+(use-package ediff
+  :config
+  (setq ediff-window-setup-function 'ediff-setup-windows-plain)
+  (setq ediff-split-window-function 'split-window-horizontally)
+  ;; Suppress the "Delete variant?" prompt after quitting
+  (setq ediff-keep-variants nil))
+
 ;;; 2.0.6 MAGIT (Git Client)
 (use-package magit
   :commands (magit-status magit-get-current-branch)
@@ -123,7 +131,7 @@
     "ff" '(find-file :which-key "find file")
     "fc" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init.el")
     "fR" '((lambda () (interactive) (load-file user-init-file)) :which-key "reload init.el")
-    "fd" '(diff-buffer-with-file :which-key "diff with file")
+    "fd" '((lambda () (interactive) (ediff-current-file)) :which-key "ediff current file")
     "fr" '(consult-recent-file :which-key "recent files")
     "/" '(consult-line :which-key "search buffer")
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
@@ -140,6 +148,7 @@
 
     "b"  '(:ignore t :which-key "buffer")
     "bb" '(consult-buffer :which-key "switch buffer")
+    "bB" '(ibuffer :which-key "list all buffers (ibuffer)")
     "bk" '(kill-current-buffer :which-key "kill buffer")
 
     "g"  '(:ignore t :which-key "git")
@@ -168,6 +177,7 @@
   :config
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
   (setq which-key-separator " -> ") ;; Add more spacing between columns
+  (setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
   (which-key-setup-side-window-bottom))
 
 ;;; 2.2 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
@@ -238,6 +248,19 @@
   (consult-customize consult--source-buffer :hidden t :default nil)
   (add-to-list 'consult-buffer-sources persp-consult-source))
   
+(use-package ibuffer
+  :ensure nil
+  :config
+  (setq ibuffer-show-empty-groups nil
+        ibuffer-display-empty-groups nil))
+
+(use-package ibuffer-projectile
+  :after ibuffer
+  :hook ((ibuffer . (lambda ()
+                      (ibuffer-projectile-set-filter-groups)
+                      (unless (eq ibuffer-sorting-mode 'alphabetic)
+                        (ibuffer-do-sort-by-alphabetic))))))
+  
 
 (use-package marginalia
   :after vertico
@@ -277,6 +300,11 @@
 (setq ring-bell-function 'ignore)       ; Silent bell
 (global-display-line-numbers-mode t)    ; Line numbers
 (column-number-mode t)                  ; Show column number in mode line
+
+;; Smooth scrolling
+(setq scroll-conservatively 101
+      scroll-margin 5)
+;; (pixel-scroll-precision-mode +1)
 
 ;; Font handling (optional - uncomment and adjust if you have a preferred font)
 ;; (set-face-attribute 'default nil :font "JetBrains Mono" :height 140)
@@ -361,14 +389,14 @@
     "e" '(:ignore t :which-key "eval")
     "ee" 'cider-eval-sexp-at-point
     "ed" 'cider-eval-defun-at-point
-    "ev" 'cider-eval-sexp-up-to-point
-    "eV" 'cider-eval-defun-up-to-point
+    "ep" 'cider-eval-sexp-up-to-point
+    "eP" 'cider-eval-defun-up-to-point
     "ec" 'cider-eval-defun-to-comment
 
     "r" '(:ignore t :which-key "REPL")
     "rr" 'cider-ns-reload
     "rR" 'cider-ns-reload-all
-    "rl" 'cider-load-file
+    "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
     "rb" 'cider-switch-to-repl-buffer
     "rq" 'cider-quit)
 
@@ -397,7 +425,7 @@
                '("\\*cider-repl"
                  (display-buffer-reuse-window display-buffer-in-side-window)
                  (side . bottom)
-                 (window-height . 15))))
+                 (window-height . 12))))
   ;; CIDER can take a moment to start, you might want to adjust idle timers
   ;; (setq cider-prompt-for-switch-to-repl t)
 
