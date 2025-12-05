@@ -117,6 +117,13 @@
     "fr" '(consult-recent-file :which-key "recent files")
     "/" '(consult-line :which-key "search buffer")
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
+
+    "e"  '(:ignore t :which-key "errors")
+    "el" '(flycheck-list-errors :which-key "list errors")
+    "en" '(flycheck-next-error :which-key "next error")
+    "ep" '(flycheck-previous-error :which-key "previous error")
+    "eb" '(flycheck-buffer :which-key "check buffer")
+    "ed" '(flycheck-disable-mode :which-key "disable Flycheck")
     
     "s"  '(:ignore t :which-key "search")
     "sl" '(consult-line :which-key "search line")
@@ -294,6 +301,20 @@
         doom-modeline-buffer-file-name-style 'file
         doom-modeline-major-mode-icon t
         doom-modeline-hud nil))
+
+;;; 5.1 LINTING (Flycheck)
+(use-package flycheck
+  :init (global-flycheck-mode)
+  :config
+  ;; Use the built-in clj-kondo checker if available
+  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq flycheck-emacs-lisp-load-path 'inherit))
+
+(use-package flycheck-clj-kondo
+  :ensure t
+  :after flycheck
+  :config
+  (require 'flycheck-clj-kondo))
 
 ;;; 6. LANGUAGE MODES
 (use-package tree-sitter
