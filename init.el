@@ -70,7 +70,17 @@
   :init
   (persp-mode)
   :custom
-  (persp-mode-prefix-key (kbd "C-c p")))
+  (persp-mode-prefix-key (kbd "C-c p"))
+  :config
+  ;; Switch to perspective by index (1-9) using CMD+n (M-n)
+  (dotimes (i 9)
+    (let ((n (+ 1 i)))
+      (global-set-key (kbd (format "M-%d" n))
+                      (lambda () (interactive)
+                        (let ((names (sort (persp-names) #'string<)))
+                          (if (> n (length names))
+                              (message "No perspective %d" n)
+                            (persp-switch (nth (1- n) names)))))))))
 
 (use-package persp-projectile
   :after perspective)
@@ -144,7 +154,12 @@
     "pk" '(persp-kill :which-key "kill current perspective")
     "pt" '(persp-switch :which-key "switch perspective")
     
-    "TAB" '(persp-switch :which-key "switch perspective")))
+    "TAB" '(persp-switch :which-key "switch perspective"))
+
+  ;; Custom keybindings
+  (general-define-key
+   :states 'normal
+   "S-k" 'describe-symbol))
 
 ;;; 2.1 WHICH-KEY (Keybinding Helper)
 (use-package which-key
@@ -152,7 +167,7 @@
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
-  (setq which-key-separator "  ") ;; Add more spacing between columns
+  (setq which-key-separator " -> ") ;; Add more spacing between columns
   (which-key-setup-side-window-bottom))
 
 ;;; 2.2 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
@@ -245,16 +260,16 @@
 ;;; Ligature support for Fira Code
 (use-package ligature
   :config
-  (ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
-                                       ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
-                                       "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
-                                       "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
-                                       "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
-                                       "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
-                                       "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
-                                       "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
-                                       "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
-                                       "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+  (ligature-set-ligatures 't '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+                               ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                               "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                               "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                               "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                               "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                               "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                               "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                               "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                               "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
   (global-ligature-mode t))
 
 (setq-default indent-tabs-mode nil) ; Prefer spaces for indentation
@@ -337,9 +352,30 @@
   (setq tree-sitter-hl-default-modes '(clojure-ts-mode))
 
   (my-local-leader-def
+    :keymaps 'clojure-ts-mode-map
+    "j" '(cider-jack-in :which-key "jack in REPL")
+    "c" '(cider-connect :which-key "connect to REPL"))
+
+  (my-local-leader-def
+    :keymaps 'cider-mode-map
+    "e" '(:ignore t :which-key "eval")
+    "ee" 'cider-eval-sexp-at-point
+    "ed" 'cider-eval-defun-at-point
+    "ev" 'cider-eval-sexp-up-to-point
+    "eV" 'cider-eval-defun-up-to-point
+    "ec" 'cider-eval-defun-to-comment
+
+    "r" '(:ignore t :which-key "REPL")
+    "rr" 'cider-ns-reload
+    "rR" 'cider-ns-reload-all
+    "rl" 'cider-load-file
+    "rb" 'cider-switch-to-repl-buffer
+    "rq" 'cider-quit)
+
+  (general-define-key
+   :states '(normal visual)
    :keymaps 'clojure-ts-mode-map
-   "j" '(cider-jack-in :which-key "jack in REPL")
-   "c" '(cider-connect :which-key "connect to REPL")))
+   "gd" 'cider-find-var))
 
 (use-package parinfer-rust-mode
   :after clojure-ts-mode
@@ -364,3 +400,5 @@
                  (window-height . 15))))
   ;; CIDER can take a moment to start, you might want to adjust idle timers
   ;; (setq cider-prompt-for-switch-to-repl t)
+
+;;; init.el ends here
