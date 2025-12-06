@@ -396,7 +396,26 @@
   (my-local-leader-def
     :keymaps 'clojure-ts-mode-map
     "j" '(cider-jack-in :which-key "jack in REPL")
-    "c" '(cider-connect :which-key "connect to REPL")))
+    "c" '(cider-connect :which-key "connect to REPL")
+
+    "R" '(:ignore t :which-key "refactor")
+    "Ra" '(clojure-ts-add-arity :which-key "add arity")
+
+    "Rt" '(:ignore t :which-key "threading")
+    "RtF" '(clojure-ts-thread-first-all :which-key "thread first all")
+    "Rtf" '(clojure-ts-thread-first :which-key "thread first")
+    "RtL" '(clojure-ts-thread-last-all :which-key "thread last all")
+    "Rtl" '(clojure-ts-thread-last :which-key "thread last")
+    "RtU" '(clojure-ts-unwind-all :which-key "unwind all")
+    "Rtu" '(clojure-ts-unwind :which-key "unwind")
+
+    "Rc" '(:ignore t :which-key "cycle")
+    "Rcp" '(clojure-ts-cycle-privacy :which-key "cycle privacy")
+    "Rcc" '(clojure-ts-cycle-conditional :which-key "cycle if/if-not")
+    "Rcn" '(clojure-ts-cycle-not :which-key "cycle not")
+    "Rck" '(clojure-ts-cycle-keyword-string :which-key "cycle keyword/string")
+    
+    "a" '(clojure-ts-align :which-key "align")))
 
 (use-package parinfer-rust-mode
   :after clojure-ts-mode
