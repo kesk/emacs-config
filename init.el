@@ -320,6 +320,7 @@
 (setq ring-bell-function 'ignore)       ; Silent bell
 (global-display-line-numbers-mode t)    ; Line numbers
 (column-number-mode t)                  ; Show column number in mode line
+(global-hl-line-mode +1)                ; Highlight current line
 
 ;; Smooth scrolling
 (setq scroll-conservatively 101
