@@ -341,6 +341,9 @@
       auto-save-timeout 20              ; number of seconds idle time before auto-save (default: 30)
       auto-save-interval 200)           ; number of keystrokes between auto-saves (default: 300)
 
+;; TRAMP persistency file
+(setq tramp-persistency-file-name (expand-file-name "tramp" (expand-file-name ".tmp/" user-emacs-directory)))
+
 
 ;;; 4. THEME
 (use-package doom-themes
