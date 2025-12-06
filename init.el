@@ -51,6 +51,11 @@
   :config
   (evil-snipe-mode +1))
 
+(use-package evil-surround
+  :after evil
+  :config
+  (global-evil-surround-mode 1))
+
 ;;; 2.0.2 PROJECTILE
 (use-package projectile
   :init
