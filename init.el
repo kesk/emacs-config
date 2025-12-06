@@ -150,6 +150,7 @@
     "bb" '(consult-buffer :which-key "switch buffer")
     "bB" '(ibuffer :which-key "list all buffers (ibuffer)")
     "bk" '(kill-current-buffer :which-key "kill buffer")
+    "br" '(revert-buffer :which-key "revert buffer")
 
     "g"  '(:ignore t :which-key "git")
     "gg" '(magit-status :which-key "magit status")
@@ -163,7 +164,11 @@
     "pk" '(persp-kill :which-key "kill current perspective")
     "pt" '(persp-switch :which-key "switch perspective")
     
-    "TAB" '(persp-switch :which-key "switch perspective"))
+    "TAB" '(persp-switch :which-key "switch perspective")
+
+    "t" '(:ignore t :which-key "toggle")
+    "tf" '(toggle-frame-maximized :which-key "maximize")
+    "tF" '(toggle-frame-fullscreen :which-key "fullscreen"))
 
   ;; Custom keybindings
   (general-define-key
@@ -354,20 +359,17 @@
   (setq flycheck-emacs-lisp-load-path 'inherit))
 
 (use-package flycheck-clj-kondo
-  :ensure t
   :after flycheck
   :config
   (require 'flycheck-clj-kondo))
 
 ;;; 6. LANGUAGE MODES
 (use-package tree-sitter
-  :ensure t
   :init
   (global-tree-sitter-mode))
 
 (use-package tree-sitter-langs
   :after tree-sitter
-  :ensure t
   :config)
   ;; You may need to install the grammar for Clojure
   ;; M-x tree-sitter-install-grammar RET clojure RET
@@ -379,31 +381,22 @@
   :config
   (setq tree-sitter-hl-default-modes '(clojure-ts-mode))
 
+  (defun my-clojure-syntax-hook ()
+    (modify-syntax-entry ?- "w") ; Treat hyphen as part of word
+    (modify-syntax-entry ?? "w") ; Treat question mark as part of word (corrected)
+    (modify-syntax-entry ?! "w") ; Treat exclamation mark as part of word
+    (modify-syntax-entry ?> "w") ; Treat greater than as part of word
+    (modify-syntax-entry ?< "w") ; Treat less than as part of word
+    (modify-syntax-entry ?: "w") ; Treat colon as part of word (for keywords)
+    (modify-syntax-entry ?/ "w") ; Treat slash as part of word (for qualified symbols/namespaces)
+    (modify-syntax-entry ?. "w") ; Treat dot as part of word (for interop)
+    (modify-syntax-entry ?* "w"))
+  (add-hook 'clojure-ts-mode-hook 'my-clojure-syntax-hook)
+
   (my-local-leader-def
     :keymaps 'clojure-ts-mode-map
     "j" '(cider-jack-in :which-key "jack in REPL")
-    "c" '(cider-connect :which-key "connect to REPL"))
-
-  (my-local-leader-def
-    :keymaps 'cider-mode-map
-    "e" '(:ignore t :which-key "eval")
-    "ee" 'cider-eval-sexp-at-point
-    "ed" 'cider-eval-defun-at-point
-    "ep" 'cider-eval-sexp-up-to-point
-    "eP" 'cider-eval-defun-up-to-point
-    "ec" 'cider-eval-defun-to-comment
-
-    "r" '(:ignore t :which-key "REPL")
-    "rr" 'cider-ns-reload
-    "rR" 'cider-ns-reload-all
-    "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
-    "rb" 'cider-switch-to-repl-buffer
-    "rq" 'cider-quit)
-
-  (general-define-key
-   :states '(normal visual)
-   :keymaps 'clojure-ts-mode-map
-   "gd" 'cider-find-var))
+    "c" '(cider-connect :which-key "connect to REPL")))
 
 (use-package parinfer-rust-mode
   :after clojure-ts-mode
@@ -425,8 +418,31 @@
                '("\\*cider-repl"
                  (display-buffer-reuse-window display-buffer-in-side-window)
                  (side . bottom)
-                 (window-height . 12))))
-  ;; CIDER can take a moment to start, you might want to adjust idle timers
-  ;; (setq cider-prompt-for-switch-to-repl t)
+                 (window-height . 12)))
 
+  (my-local-leader-def
+    :keymaps 'cider-mode-map
+    "e" '(:ignore t :which-key "eval")
+    "ee" 'cider-eval-sexp-at-point
+    "ed" 'cider-eval-defun-at-point
+    "ep" 'cider-eval-sexp-up-to-point
+    "eP" 'cider-eval-defun-up-to-point
+    "ec" 'cider-eval-defun-to-comment
+
+    "r" '(:ignore t :which-key "REPL")
+    "rr" 'cider-ns-reload
+    "rR" 'cider-ns-reload-all
+    "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
+    "rb" 'cider-switch-to-repl-buffer
+    "rq" 'cider-quit)
+
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'cider-mode-map
+   "gd" 'cider-find-var)
+
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'cider-repl-mode-map
+   "öq" 'cider-quit))
 ;;; init.el ends here
