@@ -183,7 +183,12 @@
   ;; Custom keybindings
   (general-define-key
    :states 'normal
-   "S-k" 'describe-symbol))
+   "S-k" 'describe-symbol)
+
+  (general-define-key
+   :states '(normal visual)
+   "j" 'evil-next-visual-line
+   "k" 'evil-previous-visual-line))
 
 ;;; 2.1 WHICH-KEY (Keybinding Helper)
 (use-package which-key
