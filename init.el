@@ -27,8 +27,13 @@
   :init
   (setq evil-want-integration t) ;; This is optional since it's already set to t by default.
   (setq evil-want-keybinding nil)
+  (setq evil-undo-system 'undo-fu)
   :config
   (evil-mode 1))
+
+(use-package undo-fu
+  :config
+  (global-unset-key (kbd "C-z"))) ;; Unset C-z to avoid accidental suspend/undo confusion
 
 (use-package evil-collection
   :after evil
@@ -442,18 +447,22 @@
   (my-local-leader-def
     :keymaps 'cider-mode-map
     "e" '(:ignore t :which-key "eval")
-    "ee" 'cider-eval-sexp-at-point
-    "ed" 'cider-eval-defun-at-point
-    "ep" 'cider-eval-sexp-up-to-point
-    "eP" 'cider-eval-defun-up-to-point
-    "ec" 'cider-eval-defun-to-comment
+    "ee" '(cider-eval-sexp-at-point :which-key "eval sexp at point")
+    "ed" '(cider-eval-defun-at-point :which-key "eval defun at point")
+    "ep" '(cider-eval-sexp-up-to-point :which-key "eval sexp up to point")
+    "eP" '(cider-eval-defun-up-to-point :which-key "eval defun up to point")
+    "ec" '(cider-eval-defun-to-comment :which-key "eval defun to comment")
 
     "r" '(:ignore t :which-key "REPL")
-    "rr" 'cider-ns-reload
-    "rR" 'cider-ns-reload-all
+    "ra" '(cider-apropos :which-key "apropos")
+    "ri" '(cider-interrupt :which-key "interrupt")
+    "rr" '(cider-ns-reload :which-key "reload namespace")
+    "rR" '(cider-ns-reload-all :which-key "reload all namespaces")
     "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
-    "rb" 'cider-switch-to-repl-buffer
-    "rq" 'cider-quit)
+    "rb" '(cider-switch-to-repl-buffer :which-key "switch to REPL buffer")
+    "rq" '(cider-quit :which-key "quit CIDER")
+    "ru" '(cider-undef :which-key "undef")
+    "rU" '(cider-undef-all :which-key "undef all"))
 
   (general-define-key
    :states '(normal visual)
