@@ -127,14 +127,14 @@
   (general-create-definer my-leader-def
     :states '(normal visual insert emacs)
     :prefix "SPC"
-    :non-normal-prefix "C-SPC"
-    :global-prefix "C-SPC")
+    :non-normal-prefix "s-SPC"
+    :global-prefix "s-SPC")
 
   (general-create-definer my-local-leader-def
     :states '(normal visual insert emacs)
     :prefix "ö"
-    :non-normal-prefix "C-ö"
-    :global-prefix "C-ö")
+    :non-normal-prefix "s-ö"
+    :global-prefix "s-ö")
 
   (my-leader-def
     "f"  '(:ignore t :which-key "files")
@@ -182,13 +182,8 @@
 
   ;; Custom keybindings
   (general-define-key
-   :states 'normal
-   "S-k" 'describe-symbol)
-
-  (general-define-key
-   :states '(normal visual)
-   "j" 'evil-next-visual-line
-   "k" 'evil-previous-visual-line))
+   :states '(normal visual insert emacs)
+   "C-SPC" 'corfu-completion-at-point))
 
 ;;; 2.1 WHICH-KEY (Keybinding Helper)
 (use-package which-key
@@ -382,6 +377,11 @@
   :config
   (require 'flycheck-clj-kondo))
 
+;;; 5.2 EMACS LISP CONFIG
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (setq-local evil-lookup-func (lambda () (describe-symbol (symbol-at-point))))))
+
 ;;; 6. LANGUAGE MODES
 (use-package tree-sitter
   :init
@@ -451,6 +451,10 @@
   (setq cider-repl-display-help-banner nil) ; clean up the REPL
   (setq cider-repl-pop-to-buffer-on-connect nil) ; keep focus in source file
   
+  ;; Make 'K' look up documentation in CIDER
+  (with-eval-after-load 'evil
+    (add-hook 'cider-mode-hook (lambda () (setq-local evil-lookup-func #'cider-doc))))
+
   ;; Configure REPL window to be at the bottom with height 15
   (add-to-list 'display-buffer-alist
                '("\\*cider-repl"
