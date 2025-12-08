@@ -217,8 +217,7 @@
   (setq org-startup-indented t)
   :config
   ;; You can add more Org-mode specific configurations here later
-  (require 'org-tempo)
-  )
+  (require 'org-tempo))
 
 (use-package org-modern
   :hook
@@ -252,8 +251,7 @@
    '(org-level-2 ((t (:inherit outline-2 :height 1.3))))
    '(org-level-3 ((t (:inherit outline-3 :height 1.2))))
    '(org-level-4 ((t (:inherit outline-4 :height 1.1))))
-   '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
-   ))
+   '(org-level-5 ((t (:inherit outline-5 :height 1.0))))))
 
 (use-package org-superstar
   :after org
@@ -516,14 +514,12 @@
     "a" '(clojure-ts-align :which-key "align")))
 
 (use-package parinfer-rust-mode
-  :after clojure-ts-mode
   :hook ((clojure-ts-mode . parinfer-rust-mode)
          (emacs-lisp-mode . parinfer-rust-mode))
-  :config
+  :config)
   ;; Enable evil-local-mode to ensure Evil works correctly with Parinfer
   ;; (add-hook 'parinfer-rust-mode-hook (lambda ()
   ;;                                      (evil-local-mode 1)))
-  )
 
 (use-package cider
   :after clojure-ts-mode
