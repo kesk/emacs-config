@@ -10,6 +10,14 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
+;;; Distinct C-i and TAB
+;; This allows C-i to be bound separately from TAB (useful for Evil mode)
+(defun my/distinguish-gui-tab ()
+  (define-key input-decode-map [?\C-i] [C-i]))
+
+(add-hook 'tty-setup-hook 'my/distinguish-gui-tab)
+(my/distinguish-gui-tab)
+
 ;; Initialize use-package on non-Linux platforms
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
@@ -68,7 +76,9 @@
 ;;; 2.0.3 EVIL CUSTOMIZATION (C-u scrolling)
 (with-eval-after-load 'evil-maps
   (define-key evil-motion-state-map (kbd "C-u") 'evil-scroll-up)
-  (define-key evil-motion-state-map (kbd "C-d") 'evil-scroll-down))
+  (define-key evil-motion-state-map (kbd "C-d") 'evil-scroll-down)
+  ;; Bind the distinct <C-i> key (set up in input-decode-map) to jump forward
+  (define-key evil-motion-state-map (kbd "<C-i>") 'evil-jump-forward))
 
 ;; Universal Argument Map
 (global-set-key (kbd "C-S-u") 'universal-argument)
@@ -160,6 +170,7 @@
     "bb" '(consult-buffer :which-key "switch buffer")
     "bB" '(ibuffer :which-key "list all buffers (ibuffer)")
     "bk" '(kill-current-buffer :which-key "kill buffer")
+    "bd" '(kill-current-buffer :which-key "kill buffer")
     "br" '(revert-buffer :which-key "revert buffer")
 
     "g"  '(:ignore t :which-key "git")
@@ -192,7 +203,8 @@
   :config
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
   (setq which-key-separator " -> ") ;; Add more spacing between columns
-  (setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
+  (setq which-key-sorting-type 'which-key-key-order)
+  ;(setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
   (which-key-setup-side-window-bottom))
 
 ;;; 2.2 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
@@ -398,7 +410,11 @@
   :after tree-sitter-langs
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
   :config
-  (setq tree-sitter-hl-default-modes '(clojure-ts-mode))
+  (setopt tree-sitter-hl-default-modes '(clojure-ts-mode)
+          clojure-toplevel-inside-comment-form t)
+
+  ;; Tonsky indent style
+  (setopt clojure-ts-indent-style 'fixed)
 
   (defun my-clojure-syntax-hook ()
     (modify-syntax-entry ?- "w") ; Treat hyphen as part of word
@@ -411,6 +427,11 @@
     (modify-syntax-entry ?. "w") ; Treat dot as part of word (for interop)
     (modify-syntax-entry ?* "w"))
   (add-hook 'clojure-ts-mode-hook 'my-clojure-syntax-hook)
+
+  (general-define-key
+   :states '(normal visual insert emacs)
+   :keymaps 'clojure-ts-mode-map
+   "TAB" 'clojure-ts-align)
 
   (my-local-leader-def
     :keymaps 'clojure-ts-mode-map
@@ -448,8 +469,9 @@
 (use-package cider
   :after clojure-ts-mode
   :config
-  (setq cider-repl-display-help-banner nil) ; clean up the REPL
-  (setq cider-repl-pop-to-buffer-on-connect nil) ; keep focus in source file
+  (setq cider-repl-display-help-banner nil ; clean up the REPL
+        cider-repl-pop-to-buffer-on-connect nil ; keep focus in source file
+        cider-clojure-cli-global-aliases ":dev:test")
   
   ;; Make 'K' look up documentation in CIDER
   (with-eval-after-load 'evil
@@ -472,15 +494,19 @@
     "ec" '(cider-eval-defun-to-comment :which-key "eval defun to comment")
 
     "r" '(:ignore t :which-key "REPL")
+    "r!" '(cider-interrupt :which-key "interrupt")
     "ra" '(cider-apropos :which-key "apropos")
-    "ri" '(cider-interrupt :which-key "interrupt")
+    "ri" '(cider-inspect :which-key "inspect")
     "rr" '(cider-ns-reload :which-key "reload namespace")
     "rR" '(cider-ns-reload-all :which-key "reload all namespaces")
     "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
     "rb" '(cider-switch-to-repl-buffer :which-key "switch to REPL buffer")
     "rq" '(cider-quit :which-key "quit CIDER")
     "ru" '(cider-undef :which-key "undef")
-    "rU" '(cider-undef-all :which-key "undef all"))
+    "rU" '(cider-undef-all :which-key "undef all")
+    "rd" '(cider-debug-defun-at-point :which-key "debug defun at point")
+    "rm" '(cider-macroexpand-1 :which-key "macroexpand 1")
+    "rM" '(cider-macroexpand-all :which-key "macroexpand all"))
 
   (general-define-key
    :states '(normal visual)
