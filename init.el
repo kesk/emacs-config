@@ -214,8 +214,10 @@
 (use-package org
   :init
   (setq org-directory "~/org/")
+  (setq org-startup-indented t)
   :config
   ;; You can add more Org-mode specific configurations here later
+  (require 'org-tempo)
   )
 
 (use-package org-modern
@@ -223,7 +225,42 @@
   (org-mode . org-modern-mode)
   (org-agenda-finalize . org-modern-agenda)
   :config
-  (setq org-modern-star '("◉" "○" "◈" "◇" "✳" "test")))
+  (setq
+   ;; Edit settings
+   org-auto-align-tags nil
+   org-tags-column 0
+   org-catch-invisible-edits 'show-and-error
+   org-special-ctrl-a/e t
+   org-insert-heading-respect-content t
+
+   ;; Org Modern settings
+   org-modern-star nil       ; Let org-superstar handle the stars
+   org-modern-hide-stars nil ; Let org-superstar handle hiding
+   org-modern-table nil      ; keep standard table looking (or set to t)
+   org-modern-list '((43 . "➤") (45 . "–") (42 . "•"))
+   org-modern-todo-faces
+   '(("TODO" :inverse-video t :inherit org-todo)
+     ("PROJ" :inverse-video t :inherit org-todo)
+     ("STRT" :inverse-video t :inherit org-todo)
+     ("WAIT" :inverse-video t :inherit org-todo)
+     ("HOLD" :inverse-video t :inherit org-todo)
+     ("KILL" :inverse-video t :inherit org-todo)
+     ("WORK" :inverse-video t :inherit org-todo)))
+
+  (custom-set-faces
+   '(org-level-1 ((t (:inherit outline-1 :height 1.4))))
+   '(org-level-2 ((t (:inherit outline-2 :height 1.3))))
+   '(org-level-3 ((t (:inherit outline-3 :height 1.2))))
+   '(org-level-4 ((t (:inherit outline-4 :height 1.1))))
+   '(org-level-5 ((t (:inherit outline-5 :height 1.0))))
+   ))
+
+(use-package org-superstar
+  :after org
+  :hook (org-mode . org-superstar-mode)
+  :config
+  (setq org-superstar-headline-bullets-list '("◉" "○" "◈" "◇" "✳"))
+  (setq org-superstar-special-todo-items t))
 
 (use-package org-appear
   :hook (org-mode . org-appear-mode))
