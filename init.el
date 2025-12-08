@@ -182,9 +182,12 @@
 
     "p" '(:ignore t :which-key "project")
     "pp" '(projectile-persp-switch-project :which-key "switch project")
-    "pk" '(persp-kill :which-key "kill current perspective")
+    "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
     "pt" '(persp-switch :which-key "switch perspective")
     
+    "o" '(:ignore t :which-key "org")
+    "on" '((lambda () (interactive) (find-file-other-window (expand-file-name "notes.org" org-directory))) :which-key "open main notes file")
+
     "TAB" '(persp-switch :which-key "switch perspective")
 
     "t" '(:ignore t :which-key "toggle")
@@ -207,7 +210,25 @@
   ;(setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
   (which-key-setup-side-window-bottom))
 
-;;; 2.2 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
+;;; 2.2 ORG-MODE
+(use-package org
+  :init
+  (setq org-directory "~/org/")
+  :config
+  ;; You can add more Org-mode specific configurations here later
+  )
+
+(use-package org-modern
+  :hook
+  (org-mode . org-modern-mode)
+  (org-agenda-finalize . org-modern-agenda)
+  :config
+  (setq org-modern-star '("◉" "○" "◈" "◇" "✳" "test")))
+
+(use-package org-appear
+  :hook (org-mode . org-appear-mode))
+
+;;; 2.3 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
 (use-package orderless
   :init
   ;; Configure a custom style that prioritizes initial matches
@@ -463,8 +484,9 @@
          (emacs-lisp-mode . parinfer-rust-mode))
   :config
   ;; Enable evil-local-mode to ensure Evil works correctly with Parinfer
-  (add-hook 'parinfer-rust-mode-hook (lambda ()
-                                       (evil-local-mode 1))))
+  ;; (add-hook 'parinfer-rust-mode-hook (lambda ()
+  ;;                                      (evil-local-mode 1)))
+  )
 
 (use-package cider
   :after clojure-ts-mode
