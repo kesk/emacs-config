@@ -187,6 +187,8 @@
     
     "o" '(:ignore t :which-key "org")
     "on" '((lambda () (interactive) (find-file-other-window (expand-file-name "notes.org" org-directory))) :which-key "open main notes file")
+    "oa" '(org-agenda :which-key "open agenda")
+    "ot" '(org-agenda-list :which-key "open todo list")
 
     "TAB" '(persp-switch :which-key "switch perspective")
 
@@ -217,7 +219,18 @@
   (setq org-startup-indented t)
   :config
   ;; You can add more Org-mode specific configurations here later
-  (require 'org-tempo))
+  (require 'org-tempo)
+    
+  ;; Agenda setup
+  (setq org-agenda-files '("~/org/"))
+  
+  ;; Local leader bindings for Org
+  (my-local-leader-def
+    :keymaps 'org-mode-map
+    "t" '(org-todo :which-key "todo state")
+    "d" '(org-deadline :which-key "deadline")
+    "s" '(org-schedule :which-key "schedule")
+    "." '(org-time-stamp :which-key "timestamp")))
 
 (use-package org-modern
   :hook
@@ -572,4 +585,6 @@
    :states '(normal visual)
    :keymaps 'cider-repl-mode-map
    "öq" 'cider-quit))
+
+
 ;;; init.el ends here
