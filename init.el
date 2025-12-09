@@ -56,8 +56,11 @@
 
 (use-package evil-snipe
   :after evil
+  :hook (magit-mode . 'turn-off-evil-snipe-override-mode)
   :config
-  (evil-snipe-mode +1))
+  (evil-snipe-mode +1)
+  (evil-snipe-override-mode +1)
+  (setq evil-snipe-scope 'visible))
 
 (use-package evil-surround
   :after evil
@@ -294,6 +297,42 @@
               ("C-j" . vertico-next)
               ("C-k" . vertico-previous)))
 
+;;; 2.4 EVIL MULTIPLE CURSORS
+;; (use-package evil-mc
+;;   :after evil
+;;   :init
+;;   (global-evil-mc-mode 1)
+;;   :config
+;;   ;; Use 'gz' prefix for multiple cursors
+;;   (general-define-key
+;;    :states '(normal visual)
+;;    :prefix "gz"
+;;    "n" '(evil-mc-make-and-goto-next-match :which-key "make & next")
+;;    "p" '(evil-mc-make-and-goto-prev-match :which-key "make & prev")
+;;    "A" '(evil-mc-make-all-in-region :which-key "make all in region")
+;;    "u" '(evil-mc-undo-last-added-cursor :which-key "undo last cursor")
+;;    "q" '(evil-mc-undo-all-cursors :which-key "quit multicursor"))
+
+;;   ;; Bind "gzn" directly in visual mode to start finding matches
+;;   (general-define-key
+;;    :states '(visual)
+;;    "gz" 'evil-mc-make-and-goto-next-match))
+
+;;; EVIL MULTIEDIT
+(use-package evil-multiedit
+  :after evil
+  :config
+  (evil-multiedit-default-keybinds)
+  (setq evil-multiedit-follow-matches t)
+
+  ;; Switch parinfer to 'paren mode during multiedit to avoid conflicts
+  (add-hook 'evil-multiedit-mode-hook
+            (lambda ()
+              (when (bound-and-true-p parinfer-rust-mode)
+                (if evil-multiedit-mode
+                    (parinfer-rust--switch-mode "paren")
+                  (parinfer-rust--switch-mode "smart"))))))
+
 ;;; 2.3 CORFU (Auto-completion)
 (use-package corfu
   :init
@@ -343,6 +382,10 @@
   ;; Use consult-buffer to show buffers from current perspective by default
   (consult-customize consult--source-buffer :hidden t :default nil)
   (add-to-list 'consult-buffer-sources persp-consult-source))
+
+(use-package wgrep
+  :config
+  (setq wgrep-auto-save-buffer t))
   
 (use-package ibuffer
   :ensure nil
@@ -500,7 +543,9 @@
   (general-define-key
    :states '(normal visual insert emacs)
    :keymaps 'clojure-ts-mode-map
-   "TAB" 'clojure-ts-align)
+   "TAB" 'clojure-ts-align
+   "M-t" 'transpose-sexps
+   "M-r" 'raise-sexp)
 
   (my-local-leader-def
     :keymaps 'clojure-ts-mode-map
