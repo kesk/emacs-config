@@ -38,7 +38,7 @@
   (setq evil-undo-system 'undo-fu)
   :config
   (evil-mode 1))
-
+  
 (use-package undo-fu
   :config
   (global-unset-key (kbd "C-z"))) ;; Unset C-z to avoid accidental suspend/undo confusion
@@ -55,12 +55,14 @@
   (setq avy-background nil))
 
 (use-package evil-snipe
-  :after evil
-  :hook (magit-mode . 'turn-off-evil-snipe-override-mode)
+  :after (evil evil-collection)
   :config
   (evil-snipe-mode +1)
   (evil-snipe-override-mode +1)
-  (setq evil-snipe-scope 'visible))
+  (setq evil-snipe-scope 'visible)
+
+  ;; Disable snipe in Magit buffers (buffer-local)
+  (add-hook 'magit-mode-hook #'turn-off-evil-snipe-override-mode))
 
 (use-package evil-surround
   :after evil
@@ -114,7 +116,20 @@
   (setq ediff-window-setup-function 'ediff-setup-windows-plain)
   (setq ediff-split-window-function 'split-window-horizontally)
   ;; Suppress the "Delete variant?" prompt after quitting
-  (setq ediff-keep-variants nil))
+  (setq ediff-keep-variants nil)
+
+  (defun my/ediff-cleanup-mess ()
+    "Kill Ediff-specific temporary buffers upon quitting Ediff."
+    (dolist (buf (buffer-list))
+      (let ((buffer-name (buffer-name buf)))
+        (when (or (member buffer-name '("*ediff-errors*" "*ediff-diff*" "*Ediff Registry*" "*ediff-fine-diff*" "*Ediff Control Panel*"))
+                  (string-match-p "^FILE=" buffer-name))
+          (when (buffer-live-p buf)
+            (kill-buffer buf))))))
+  
+  ;; Restore window layout when quitting ediff
+  (add-hook 'ediff-quit-hook #'winner-undo)
+  (add-hook 'ediff-quit-hook #'my/ediff-cleanup-mess))
 
 ;;; 2.0.6 MAGIT (Git Client)
 (use-package magit
@@ -297,27 +312,6 @@
               ("C-j" . vertico-next)
               ("C-k" . vertico-previous)))
 
-;;; 2.4 EVIL MULTIPLE CURSORS
-;; (use-package evil-mc
-;;   :after evil
-;;   :init
-;;   (global-evil-mc-mode 1)
-;;   :config
-;;   ;; Use 'gz' prefix for multiple cursors
-;;   (general-define-key
-;;    :states '(normal visual)
-;;    :prefix "gz"
-;;    "n" '(evil-mc-make-and-goto-next-match :which-key "make & next")
-;;    "p" '(evil-mc-make-and-goto-prev-match :which-key "make & prev")
-;;    "A" '(evil-mc-make-all-in-region :which-key "make all in region")
-;;    "u" '(evil-mc-undo-last-added-cursor :which-key "undo last cursor")
-;;    "q" '(evil-mc-undo-all-cursors :which-key "quit multicursor"))
-
-;;   ;; Bind "gzn" directly in visual mode to start finding matches
-;;   (general-define-key
-;;    :states '(visual)
-;;    "gz" 'evil-mc-make-and-goto-next-match))
-
 ;;; EVIL MULTIEDIT
 (use-package evil-multiedit
   :after evil
@@ -440,6 +434,7 @@
 (global-display-line-numbers-mode t)    ; Line numbers
 (column-number-mode t)                  ; Show column number in mode line
 (global-hl-line-mode +1)                ; Highlight current line
+(winner-mode +1)                        ; Window layout undo/redo
 
 ;; Smooth scrolling
 (setq scroll-conservatively 101
