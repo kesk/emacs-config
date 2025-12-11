@@ -37,8 +37,21 @@
   (setq evil-want-keybinding nil)
   (setq evil-undo-system 'undo-fu)
   :config
-  (evil-mode 1))
-  
+  (evil-mode 1)
+  ;; Custom motion for next closing square bracket
+  (evil-define-motion evil-next-close-square (count)
+    "Go to COUNT next unmatched \"]\"."
+    :jump t
+    :type exclusive
+    (forward-char)
+    (evil-up-paren ?\[ ?\] (or count 1))
+    (backward-char))
+  (evil-define-motion evil-previous-open-square (count)
+    "Go to COUNT previous unmatched \"[\"."
+    :jump t
+    :type exclusive
+    (evil-up-paren ?\[ ?\] (- (or count 1)))))
+
 (use-package undo-fu
   :config
   (global-unset-key (kbd "C-z"))) ;; Unset C-z to avoid accidental suspend/undo confusion
@@ -76,7 +89,7 @@
   :config
   ;; Ensure Projectile is initialized before other things that depend on it
   (setq projectile-project-search-path '("~/Developer/"))) ; Customize as needed
-  
+
 
 ;;; 2.0.3 EVIL CUSTOMIZATION (C-u scrolling)
 (with-eval-after-load 'evil-maps
@@ -126,7 +139,7 @@
                   (string-match-p "^FILE=" buffer-name))
           (when (buffer-live-p buf)
             (kill-buffer buf))))))
-  
+
   ;; Restore window layout when quitting ediff
   (add-hook 'ediff-quit-hook #'winner-undo)
   (add-hook 'ediff-quit-hook #'my/ediff-cleanup-mess))
@@ -152,19 +165,19 @@
 (use-package general
   :after evil
   :config
-  (general-create-definer my-leader-def
+  (general-create-definer my/leader-def
     :states '(normal visual insert emacs)
     :prefix "SPC"
     :non-normal-prefix "s-SPC"
     :global-prefix "s-SPC")
 
-  (general-create-definer my-local-leader-def
+  (general-create-definer my/local-leader-def
     :states '(normal visual insert emacs)
     :prefix "ö"
     :non-normal-prefix "s-ö"
     :global-prefix "s-ö")
 
-  (my-leader-def
+  (my/leader-def
     "/" '(consult-line :which-key "search buffer")
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
     "TAB" '(persp-switch :which-key "switch perspective")
@@ -182,7 +195,7 @@
     "el" '(flycheck-list-errors :which-key "list errors")
     "en" '(flycheck-next-error :which-key "next error")
     "ep" '(flycheck-previous-error :which-key "previous error")
-    
+
     "f"  '(:ignore t :which-key "files")
     "fc" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init.el")
     "fd" '((lambda () (interactive) (ediff-current-file)) :which-key "ediff current file")
@@ -211,7 +224,7 @@
     "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
     "pp" '(projectile-persp-switch-project :which-key "switch project")
     "pt" '(persp-switch :which-key "switch perspective")
-    
+
     "s"  '(:ignore t :which-key "search")
     "ss" '(consult-line :which-key "search line")
     "sl" '(consult-line :which-key "search line")
@@ -244,14 +257,16 @@
   :config
   ;; You can add more Org-mode specific configurations here later
   (require 'org-tempo)
-    
+
   ;; Agenda setup
   (setq org-agenda-files '("~/org/"))
-  
+
   ;; Local leader bindings for Org
-  (my-local-leader-def
+  (my/local-leader-def
     :keymaps 'org-mode-map
-    "t" '(org-todo :which-key "todo state")
+    "t" '(:ignore t :which-key "toggle")
+    "tt" '(org-todo :which-key "todo state")
+    "tc" '(org-toggle-checkbox :which-key "checkbox")
     "d" '(org-deadline :which-key "deadline")
     "s" '(org-schedule :which-key "schedule")
     "." '(org-time-stamp :which-key "timestamp")))
@@ -342,7 +357,7 @@
   (corfu-cycle t)                ;; Enable cycling for `corfu-next/previous'
   (corfu-preselect 'prompt)      ;; Always preselect the prompt
   (corfu-quit-no-match 'separator)
-  
+
   :bind
   (:map corfu-map
         ("TAB" . corfu-next)
@@ -386,7 +401,7 @@
 (use-package wgrep
   :config
   (setq wgrep-auto-save-buffer t))
-  
+
 (use-package ibuffer
   :ensure nil
   :config
@@ -399,7 +414,7 @@
                       (ibuffer-projectile-set-filter-groups)
                       (unless (eq ibuffer-sorting-mode 'alphabetic)
                         (ibuffer-do-sort-by-alphabetic))))))
-  
+
 
 (use-package marginalia
   :after vertico
@@ -476,7 +491,7 @@
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
-  
+
   ;; Corrects (and improves) org-mode's native fontification.
   (doom-themes-org-config))
 
@@ -503,9 +518,19 @@
   (require 'flycheck-clj-kondo))
 
 ;;; 5.2 EMACS LISP CONFIG
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (setq-local evil-lookup-func (lambda () (describe-symbol (symbol-at-point))))))
+(defun my-elisp-syntax-hook ()
+  (modify-syntax-entry ?- "w") ; Treat hyphen as part of word
+  (modify-syntax-entry ?? "w") ; Treat question mark as part of word
+  (modify-syntax-entry ?! "w") ; Treat exclamation mark as part of word
+  (modify-syntax-entry ?> "w") ; Treat greater than as part of word
+  (modify-syntax-entry ?< "w") ; Treat less than as part of word
+  (modify-syntax-entry ?: "w") ; Treat colon as part of word
+  (modify-syntax-entry ?/ "w") ; Treat slash as part of word
+  (modify-syntax-entry ?. "w") ; Treat dot as part of word
+  (modify-syntax-entry ?* "w") ; Treat asterisk as part of word
+  (setq-local evil-lookup-func (lambda () (describe-symbol (symbol-at-point)))))
+
+(add-hook 'emacs-lisp-mode-hook 'my-elisp-syntax-hook)
 
 ;;; 6. LANGUAGE MODES
 (use-package tree-sitter
@@ -517,7 +542,7 @@
   :config)
   ;; You may need to install the grammar for Clojure
   ;; M-x tree-sitter-install-grammar RET clojure RET
-  
+
 
 (use-package clojure-ts-mode
   :after tree-sitter-langs
@@ -548,7 +573,17 @@
    "M-t" 'transpose-sexps
    "M-r" 'raise-sexp)
 
-  (my-local-leader-def
+  (add-hook 'clojure-ts-mode-hook
+            (lambda ()
+              (evil-define-key* '(normal visual motion) 'local
+                (kbd "(") 'evil-previous-open-paren
+                (kbd "[") 'evil-previous-open-square
+                (kbd "{") 'evil-previous-open-brace
+                (kbd ")") 'evil-next-close-paren
+                (kbd "]") 'evil-next-close-square
+                (kbd "}") 'evil-next-close-brace)))
+
+  (my/local-leader-def
     :keymaps 'clojure-ts-mode-map
     "j" '(cider-jack-in :which-key "jack in REPL")
     "c" '(cider-connect :which-key "connect to REPL")
@@ -569,7 +604,7 @@
     "Rcc" '(clojure-ts-cycle-conditional :which-key "cycle if/if-not")
     "Rcn" '(clojure-ts-cycle-not :which-key "cycle not")
     "Rck" '(clojure-ts-cycle-keyword-string :which-key "cycle keyword/string")
-    
+
     "a" '(clojure-ts-align :which-key "align")))
 
 (use-package parinfer-rust-mode
@@ -586,7 +621,7 @@
   (setq cider-repl-display-help-banner nil ; clean up the REPL
         cider-repl-pop-to-buffer-on-connect nil ; keep focus in source file
         cider-clojure-cli-global-aliases ":dev:test")
-  
+
   ;; Make 'K' look up documentation in CIDER
   (with-eval-after-load 'evil
     (add-hook 'cider-mode-hook (lambda () (setq-local evil-lookup-func #'cider-doc))))
@@ -598,7 +633,7 @@
                  (side . bottom)
                  (window-height . 12)))
 
-  (my-local-leader-def
+  (my/local-leader-def
     :keymaps 'cider-mode-map
     "e" '(:ignore t :which-key "eval")
     "ee" '(cider-eval-sexp-at-point :which-key "eval sexp at point")
