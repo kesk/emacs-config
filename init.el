@@ -165,54 +165,60 @@
     :global-prefix "s-ö")
 
   (my-leader-def
-    "f"  '(:ignore t :which-key "files")
-    "ff" '(find-file :which-key "find file")
-    "fc" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init.el")
-    "fR" '((lambda () (interactive) (load-file user-init-file)) :which-key "reload init.el")
-    "fd" '((lambda () (interactive) (ediff-current-file)) :which-key "ediff current file")
-    "fr" '(consult-recent-file :which-key "recent files")
     "/" '(consult-line :which-key "search buffer")
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
-
-    "e"  '(:ignore t :which-key "errors")
-    "el" '(flycheck-list-errors :which-key "list errors")
-    "en" '(flycheck-next-error :which-key "next error")
-    "ep" '(flycheck-previous-error :which-key "previous error")
-    "eb" '(flycheck-buffer :which-key "check buffer")
-    "ed" '(flycheck-disable-mode :which-key "disable Flycheck")
-    
-    "s"  '(:ignore t :which-key "search")
-    "sl" '(consult-line :which-key "search line")
+    "TAB" '(persp-switch :which-key "switch perspective")
 
     "b"  '(:ignore t :which-key "buffer")
     "bb" '(consult-buffer :which-key "switch buffer")
     "bB" '(ibuffer :which-key "list all buffers (ibuffer)")
-    "bk" '(kill-current-buffer :which-key "kill buffer")
     "bd" '(kill-current-buffer :which-key "kill buffer")
+    "bk" '(kill-current-buffer :which-key "kill buffer")
     "br" '(revert-buffer :which-key "revert buffer")
 
+    "e"  '(:ignore t :which-key "errors")
+    "eb" '(flycheck-buffer :which-key "check buffer")
+    "ed" '(flycheck-disable-mode :which-key "disable Flycheck")
+    "el" '(flycheck-list-errors :which-key "list errors")
+    "en" '(flycheck-next-error :which-key "next error")
+    "ep" '(flycheck-previous-error :which-key "previous error")
+    
+    "f"  '(:ignore t :which-key "files")
+    "fc" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init.el")
+    "fd" '((lambda () (interactive) (ediff-current-file)) :which-key "ediff current file")
+    "ff" '(find-file :which-key "find file")
+    "fR" '((lambda () (interactive) (load-file user-init-file)) :which-key "reload init.el")
+    "fr" '(consult-recent-file :which-key "recent files")
+
     "g"  '(:ignore t :which-key "git")
+    "gd" '(magit-diff-buffer-file :which-key "diff with file")
     "gg" '(magit-status :which-key "magit status")
     "gG" '(magit-status-here :which-key "magit status here")
-    "gd" '(magit-diff-buffer-file :which-key "diff with file")
     "gj" '(git-gutter:next-hunk :which-key "next change")
     "gk" '(git-gutter:previous-hunk :which-key "previous change")
 
-    "p" '(:ignore t :which-key "project")
-    "pp" '(projectile-persp-switch-project :which-key "switch project")
-    "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
-    "pt" '(persp-switch :which-key "switch perspective")
-    
+    "n" '(:ignore t :which-key "narrow/widen")
+    "nd" '(narrow-to-defun :which-key "narrow to defun")
+    "nr" '(narrow-to-region :ignore t :which-key "narrow to reguin")
+    "nw" '(widen :ignore t :which-key "widen")
+
     "o" '(:ignore t :which-key "org")
-    "on" '((lambda () (interactive) (find-file-other-window (expand-file-name "notes.org" org-directory))) :which-key "open main notes file")
     "oa" '(org-agenda :which-key "open agenda")
+    "on" '((lambda () (interactive) (find-file-other-window (expand-file-name "notes.org" org-directory))) :which-key "open main notes file")
     "ot" '(org-agenda-list :which-key "open todo list")
 
-    "TAB" '(persp-switch :which-key "switch perspective")
+    "p" '(:ignore t :which-key "project")
+    "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
+    "pp" '(projectile-persp-switch-project :which-key "switch project")
+    "pt" '(persp-switch :which-key "switch perspective")
+    
+    "s"  '(:ignore t :which-key "search")
+    "ss" '(consult-line :which-key "search line")
+    "sl" '(consult-line :which-key "search line")
 
     "t" '(:ignore t :which-key "toggle")
-    "tf" '(toggle-frame-maximized :which-key "maximize")
-    "tF" '(toggle-frame-fullscreen :which-key "fullscreen"))
+    "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
+    "tf" '(toggle-frame-maximized :which-key "maximize"))
 
   ;; Custom keybindings
   (general-define-key
