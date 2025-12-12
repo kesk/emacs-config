@@ -231,7 +231,9 @@
 
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
-    "tf" '(toggle-frame-maximized :which-key "maximize"))
+    "tf" '(toggle-frame-maximized :which-key "maximize")
+
+    "a" '(embark-act :which-key "act"))
 
   ;; Custom keybindings
   (general-define-key
@@ -371,6 +373,24 @@
   :after vertico
   :init
   (marginalia-mode))
+
+(use-package embark
+
+  :init
+  ;; Optionally replace the key help with a completing-read interface
+  (setq prefix-help-command #'embark-prefix-help-command)
+
+  :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none)))))
+
+;; Consult users will also want the embark-consult package.
+(use-package embark-consult
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 
 ;; Configure directory extension.
 (use-package vertico-directory
