@@ -583,6 +583,48 @@
                 (kbd "]") 'evil-next-close-square
                 (kbd "}") 'evil-next-close-brace)))
 
+  (defvar my/treesit-clojure-lit-pattern "sym_lit\\|kwd_lit\\|bool_lit\\|num_lit\\|str_lit"
+    "Tree-sitter pattern matching Clojure literals (symbols, keywords, booleans, numbers, strings).")
+
+  (defun my/clojure-jump-next-lit-start ()
+    "Jump to the start of the next literal node (symbol, keyword, etc.) in the syntax tree."
+    (interactive)
+    (when-let ((match (treesit-search-forward (treesit-node-at (point)) my/treesit-clojure-lit-pattern)))
+      (if (< (point) (treesit-node-start match))
+          (goto-char (treesit-node-start match))
+        (treesit-search-forward-goto
+         (treesit-node-at (point))
+         my/treesit-clojure-lit-pattern t))))
+
+  (defun my/clojure-jump-next-lit-end ()
+    "Jump to the end of the next literal node in the syntax tree.
+If already inside a literal, jump to its end."
+    (interactive)
+    (when-let ((match (treesit-search-forward (treesit-node-at (point)) my/treesit-clojure-lit-pattern)))
+      (if (< (1+ (point)) (treesit-node-end match))
+          (goto-char (1- (treesit-node-end match)))
+        (treesit-search-forward-goto
+         (treesit-node-at (point))
+         my/treesit-clojure-lit-pattern)
+        (forward-char -1))))
+
+  (defun my/clojure-jump-prev-lit ()
+    "Jump to the start of the previous literal node in the syntax tree."
+    (interactive)
+    (when-let ((match (treesit-search-forward (treesit-node-at (point)) my/treesit-clojure-lit-pattern t)))
+      (if (> (point) (treesit-node-start match))
+          (goto-char (treesit-node-start match))
+        (treesit-search-forward-goto
+         (treesit-node-at (point))
+         my/treesit-clojure-lit-pattern t t))))
+
+  (general-define-key
+   :states '(normal visual)
+   :keymaps 'clojure-ts-mode-map
+   "W" #'my/clojure-jump-next-lit-start
+   "E" #'my/clojure-jump-next-lit-end
+   "B" #'my/clojure-jump-prev-lit)
+
   (my/local-leader-def
     :keymaps 'clojure-ts-mode-map
     "j" '(cider-jack-in :which-key "jack in REPL")
