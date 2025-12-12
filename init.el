@@ -148,7 +148,7 @@
 (use-package magit
   :commands (magit-status magit-get-current-branch)
   :custom
-  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+  (magit-display-buffer-function #'magit-display-buffer-traditional))
 
 ;;; 2.0.7 GIT GUTTER (Diff indicators)
 (use-package git-gutter
