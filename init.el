@@ -226,14 +226,13 @@
     "pt" '(persp-switch :which-key "switch perspective")
 
     "s"  '(:ignore t :which-key "search")
-    "ss" '(consult-line :which-key "search line")
     "sl" '(consult-line :which-key "search line")
+    "sp" '(consult-ripgrep :which-key "search project")
+    "ss" '(consult-line :which-key "search line")
 
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
-    "tf" '(toggle-frame-maximized :which-key "maximize")
-
-    "a" '(embark-act :which-key "act"))
+    "tf" '(toggle-frame-maximized :which-key "maximize"))
 
   ;; Custom keybindings
   (general-define-key
@@ -375,6 +374,9 @@
   (marginalia-mode))
 
 (use-package embark
+  :bind
+  (("M-o" . embark-act)         ;; Changed to M-o as requested
+   ("C-h B" . embark-bindings))
 
   :init
   ;; Optionally replace the key help with a completing-read interface
