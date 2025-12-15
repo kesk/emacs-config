@@ -349,6 +349,11 @@
                     (parinfer-rust--switch-mode "paren")
                   (parinfer-rust--switch-mode "smart"))))))
 
+;;; EXPAND REGION
+(use-package expand-region
+  :bind (("M-k" . er/expand-region)
+         ("M-j" . er/contract-region)))
+
 ;;; 2.3 CORFU (Auto-completion)
 (use-package corfu
   :init
@@ -565,6 +570,10 @@
   ;; You may need to install the grammar for Clojure
   ;; M-x tree-sitter-install-grammar RET clojure RET
 
+(use-package treesit-fold
+  :vc (:url "https://github.com/emacs-tree-sitter/treesit-fold" :branch "master")
+  :after tree-sitter
+  :hook (prog-mode . treesit-fold-mode))
 
 (use-package clojure-ts-mode
   :after tree-sitter-langs
@@ -595,15 +604,30 @@
    "M-t" 'transpose-sexps
    "M-r" 'raise-sexp)
 
+  (defun my/find-containing-seq-node (POINT)
+    (let* ((seq-lit '("list_lit" "vec_lit" "map_lit"))
+           (current (treesit-node-at POINT)))
+      (while (not (or (eq nil current)
+                      (and (member (treesit-node-type current) seq-lit)
+                           (< (treesit-node-start current) POINT (1- (treesit-node-end current))))))
+        (setq current (treesit-node-parent current)))
+      current))
+  
+  (defun my/previous-seq-start ()
+    (interactive)
+    (when-let ((node (my/find-containing-seq-node (point))))
+      (goto-char (treesit-node-start node))))
+  
+  (defun my/next-seq-end ()
+    (interactive)
+    (when-let ((node (my/find-containing-seq-node (point))))
+      (goto-char (1- (treesit-node-end node)))))
+
   (add-hook 'clojure-ts-mode-hook
             (lambda ()
               (evil-define-key* '(normal visual motion) 'local
-                (kbd "(") 'evil-previous-open-paren
-                (kbd "[") 'evil-previous-open-square
-                (kbd "{") 'evil-previous-open-brace
-                (kbd ")") 'evil-next-close-paren
-                (kbd "]") 'evil-next-close-square
-                (kbd "}") 'evil-next-close-brace)))
+                (kbd "(") 'my/previous-seq-start
+                (kbd ")") 'my/next-seq-end)))
 
   (defvar my/treesit-clojure-lit-pattern "sym_lit\\|kwd_lit\\|bool_lit\\|num_lit\\|str_lit"
     "Tree-sitter pattern matching Clojure literals (symbols, keywords, booleans, numbers, strings).")
@@ -646,6 +670,50 @@ If already inside a literal, jump to its end."
    "W" #'my/clojure-jump-next-lit-start
    "E" #'my/clojure-jump-next-lit-end
    "B" #'my/clojure-jump-prev-lit)
+
+  (defun my/find-parent-form-end (POINT)
+    (let ((current (treesit-node-at POINT)))
+      (while (not (or (eq nil current)
+                      (and (member (treesit-node-type current) '("list_lit" "vec_lit" "map_lit"))
+                           (> POINT (treesit-node-start current)))))
+        (setq current (treesit-node-parent current)))
+      (treesit-node-end current)))
+
+  (defun my/find-parent-form-end (POINT)
+    (let ((current (treesit-node-at POINT)))
+      (while (not (or (eq nil current)
+                      (and (member (treesit-node-type current) '("list_lit" "vec_lit" "map_lit"))
+                           (< (1+ POINT) (treesit-node-end current)))))
+        (setq current (treesit-node-parent current)))
+      (treesit-node-end current)))
+
+  (defun my/find-parent-form (POINT)
+    (let ((current (treesit-node-at POINT)))
+      (while (not (or (eq nil current)
+                      (and (member (treesit-node-type current) '("list_lit" "vec_lit" "map_lit"))
+                           (> POINT (treesit-node-start current)))))
+        (setq current (treesit-node-parent current)))
+      current))
+
+  (defun my/insert-at-form-start ()
+    (interactive)
+    (when-let ((closest (my/find-parent-form (point))))
+      (goto-char (treesit-node-start closest))
+      (forward-char)
+      (evil-insert-state)))
+
+  (defun my/insert-at-form-end ()
+    (interactive)
+    (when-let ((closest (my/find-parent-form (point))))
+      (goto-char (treesit-node-end closest))
+      (backward-char)
+      (evil-insert-state)))
+
+  (general-define-key
+   :states 'normal
+   :keymaps 'clojure-ts-mode-map
+   "A" #'my/insert-at-form-end
+   "I" #'my/insert-at-form-start)
 
   (my/local-leader-def
     :keymaps 'clojure-ts-mode-map
