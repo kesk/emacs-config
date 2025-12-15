@@ -341,13 +341,16 @@
   (evil-multiedit-default-keybinds)
   (setq evil-multiedit-follow-matches t)
 
-  ;; Switch parinfer to 'paren mode during multiedit to avoid conflicts
+  ;; Disable parinfer completely during multiedit to avoid conflicts
   (add-hook 'evil-multiedit-mode-hook
             (lambda ()
-              (when (bound-and-true-p parinfer-rust-mode)
-                (if evil-multiedit-mode
-                    (parinfer-rust--switch-mode "paren")
-                  (parinfer-rust--switch-mode "smart"))))))
+              (if evil-multiedit-mode
+                  (when (bound-and-true-p parinfer-rust-mode)
+                    (parinfer-rust-mode -1)
+                    (setq-local my/parinfer-was-enabled t))
+                (when (bound-and-true-p my/parinfer-was-enabled)
+                  (parinfer-rust-mode 1)
+                  (kill-local-variable 'my/parinfer-was-enabled))))))
 
 ;;; EXPAND REGION
 (use-package expand-region
