@@ -457,6 +457,9 @@
   (marginalia-mode))
 
 ;;; 3. BASIC UI & DEFAULTS
+(setq initial-scratch-message nil)
+(setq initial-major-mode 'fundamental-mode)
+
 ;; macOS keybindings
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier nil)
