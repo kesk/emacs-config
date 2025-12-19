@@ -225,6 +225,10 @@
     "pp" '(projectile-persp-switch-project :which-key "switch project")
     "pt" '(persp-switch :which-key "switch perspective")
 
+    "q" '(:ignore t :which-key "quit")
+    "qq" 'kill-emacs
+    "qr" 'restart-emacs
+
     "s"  '(:ignore t :which-key "search")
     "sl" '(consult-line :which-key "search line")
     "sp" '(consult-ripgrep :which-key "search project")
