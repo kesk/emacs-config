@@ -237,7 +237,7 @@
   ;; Custom keybindings
   (general-define-key
    :states '(normal visual insert emacs)
-   "C-SPC" 'corfu-completion-at-point))
+   "C-SPC" 'completion-at-point))
 
 ;;; 2.1 WHICH-KEY (Keybinding Helper)
 (use-package which-key
@@ -255,6 +255,7 @@
   :init
   (setq org-directory "~/org/")
   (setq org-startup-indented t)
+  (setq org-hide-emphasis-markers t)
   :config
   ;; You can add more Org-mode specific configurations here later
   (require 'org-tempo)
@@ -497,6 +498,7 @@
 
 ;; Backup files handling - keep directory clean
 (setq backup-directory-alist `(("." . ,(expand-file-name ".tmp/backups/" user-emacs-directory))))
+(setq auto-save-file-name-transforms `((".*" ,(expand-file-name ".tmp/auto-saves/" user-emacs-directory) t)))
 (setq make-backup-files t               ; backup of a file the first time it is saved.
       backup-by-copying t               ; don't clobber symlinks
       version-control t                 ; version numbers for backup files
@@ -539,7 +541,7 @@
   :init (global-flycheck-mode)
   :config
   ;; Use the built-in clj-kondo checker if available
-  (setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (setq flycheck-check-syntax-automatically '(save mode-enabled idle-change))
   (setq flycheck-emacs-lisp-load-path 'inherit))
 
 (use-package flycheck-clj-kondo
@@ -568,10 +570,7 @@
   (global-tree-sitter-mode))
 
 (use-package tree-sitter-langs
-  :after tree-sitter
-  :config)
-  ;; You may need to install the grammar for Clojure
-  ;; M-x tree-sitter-install-grammar RET clojure RET
+  :after tree-sitter)
 
 (use-package treesit-fold
   :vc (:url "https://github.com/emacs-tree-sitter/treesit-fold" :branch "master")
@@ -583,14 +582,14 @@
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
   :config
   (setopt tree-sitter-hl-default-modes '(clojure-ts-mode)
-          clojure-toplevel-inside-comment-form t)
+          clojure-ts-toplevel-inside-comment-form t)
 
   ;; Tonsky indent style
   (setopt clojure-ts-indent-style 'fixed)
 
   (defun my-clojure-syntax-hook ()
     (modify-syntax-entry ?- "w") ; Treat hyphen as part of word
-    (modify-syntax-entry ?? "w") ; Treat question mark as part of word (corrected)
+    (modify-syntax-entry ?? "w") ; Treat question mark as part of word
     (modify-syntax-entry ?! "w") ; Treat exclamation mark as part of word
     (modify-syntax-entry ?> "w") ; Treat greater than as part of word
     (modify-syntax-entry ?< "w") ; Treat less than as part of word
@@ -673,22 +672,6 @@ If already inside a literal, jump to its end."
    "W" #'my/clojure-jump-next-lit-start
    "E" #'my/clojure-jump-next-lit-end
    "B" #'my/clojure-jump-prev-lit)
-
-  (defun my/find-parent-form-end (POINT)
-    (let ((current (treesit-node-at POINT)))
-      (while (not (or (eq nil current)
-                      (and (member (treesit-node-type current) '("list_lit" "vec_lit" "map_lit"))
-                           (> POINT (treesit-node-start current)))))
-        (setq current (treesit-node-parent current)))
-      (treesit-node-end current)))
-
-  (defun my/find-parent-form-end (POINT)
-    (let ((current (treesit-node-at POINT)))
-      (while (not (or (eq nil current)
-                      (and (member (treesit-node-type current) '("list_lit" "vec_lit" "map_lit"))
-                           (< (1+ POINT) (treesit-node-end current)))))
-        (setq current (treesit-node-parent current)))
-      (treesit-node-end current)))
 
   (defun my/find-parent-form (POINT)
     (let ((current (treesit-node-at POINT)))
