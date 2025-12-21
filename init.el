@@ -153,7 +153,8 @@
 ;;; 2.0.7 GIT GUTTER (Diff indicators)
 (use-package git-gutter
   :config
-  (global-git-gutter-mode +1))
+  (global-git-gutter-mode +1)
+  (setq git-gutter:update-interval 1))
 
 (use-package git-gutter-fringe
   :config
@@ -187,6 +188,7 @@
     "bB" '(ibuffer :which-key "list all buffers (ibuffer)")
     "bd" '(kill-current-buffer :which-key "kill buffer")
     "bk" '(kill-current-buffer :which-key "kill buffer")
+    "bn" '(evil-buffer-new :which-key "new buffer")
     "br" '(revert-buffer :which-key "revert buffer")
 
     "e"  '(:ignore t :which-key "errors")
@@ -236,7 +238,21 @@
 
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
-    "tf" '(toggle-frame-maximized :which-key "maximize"))
+    "tf" '(toggle-frame-maximized :which-key "maximize")
+
+    "w" '(:ignore t :which-key "window")
+    "wh" '(evil-window-left :which-key "window left")
+    "wj" '(evil-window-down :which-key "window down")
+    "wk" '(evil-window-up :which-key "window up")
+    "wl" '(evil-window-right :which-key "window right")
+    "wc" '(evil-window-delete :which-key "close window")
+    "wd" '(delete-window :which-key "delete window")
+    "wo" '(delete-other-windows :which-key "delete other windows")
+    "ws" '(split-window-below :which-key "split horizontal")
+    "wv" '(split-window-right :which-key "split vertical")
+    "w=" '(balance-windows :which-key "balance windows")
+
+    "u" 'universal-argument)
 
   ;; Custom keybindings
   (general-define-key
