@@ -504,6 +504,7 @@
   (global-ligature-mode t))
 
 (setq-default indent-tabs-mode nil) ; Prefer spaces for indentation
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 (setq ring-bell-function 'ignore)       ; Silent bell
 (global-display-line-numbers-mode t)    ; Line numbers
@@ -796,7 +797,15 @@ If already inside a literal, jump to its end."
     "rU" '(cider-undef-all :which-key "undef all")
     "rd" '(cider-debug-defun-at-point :which-key "debug defun at point")
     "rm" '(cider-macroexpand-1 :which-key "macroexpand 1")
-    "rM" '(cider-macroexpand-all :which-key "macroexpand all"))
+    "rM" '(cider-macroexpand-all :which-key "macroexpand all")
+    "rn" '(cider-repl-set-ns :which-key "set REPL ns to current"))
+
+      
+
+  (my/local-leader-def
+    :keymaps 'cider-repl-mode-map
+    "q" '(cider-quit :which-key "quit")
+    "c" '(cider-repl-clear-buffer :which-key "clear"))
 
   (general-define-key
    :states '(normal visual)
