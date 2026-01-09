@@ -30,6 +30,11 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
+;;; 1.1 PERFORMANCE
+(use-package gcmh
+  :init
+  (gcmh-mode 1))
+
 ;;; 2. EVIL MODE (Vim Keybindings)
 (use-package evil
   :init
