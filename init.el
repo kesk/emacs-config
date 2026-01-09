@@ -528,6 +528,10 @@
 (global-hl-line-mode +1)                ; Highlight current line
 (winner-mode +1)                        ; Window layout undo/redo
 
+;; Remember history and cursor position
+(savehist-mode 1)
+(save-place-mode 1)
+
 ;; Smooth scrolling
 (setq scroll-conservatively 101
       scroll-margin 5)
