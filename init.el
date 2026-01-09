@@ -168,6 +168,11 @@
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
+;;; 2.0.7.5 WS-BUTLER (Clean whitespace only on changed lines)
+(use-package ws-butler
+  :config
+  (ws-butler-global-mode 1))
+
 ;;; 2.0.8 GENERAL (Keybindings & Leader Key)
 (use-package general
   :after evil
