@@ -106,7 +106,8 @@
   :bind
   ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
   :init
-  (persp-mode)
+  (setq persp-show-modestring nil) ; Disable default modeline to avoid conflicts with Doom Modeline
+  (persp-mode 1)
   :custom
   (persp-mode-prefix-key (kbd "C-c p"))
   :config
@@ -468,12 +469,6 @@
                       (unless (eq ibuffer-sorting-mode 'alphabetic)
                         (ibuffer-do-sort-by-alphabetic))))))
 
-
-(use-package marginalia
-  :after vertico
-  :init
-  (marginalia-mode))
-
 ;;; 3. BASIC UI & DEFAULTS
 (setq initial-scratch-message nil)
 (setq initial-major-mode 'fundamental-mode)
@@ -554,12 +549,25 @@
 
 ;;; 5. MODELINE
 (use-package doom-modeline
-  :init (doom-modeline-mode 1)
+  :init
+  (doom-modeline-mode 1)
   :config
   (setq doom-modeline-height 15        ;; You can adjust this
         doom-modeline-buffer-file-name-style 'file
         doom-modeline-major-mode-icon t
-        doom-modeline-hud nil))
+        doom-modeline-hud nil)
+
+  ;; Custom segment: Current perspective
+  (doom-modeline-def-segment my-persp-name
+    "Display the current perspective name."
+    (when (bound-and-true-p persp-mode)
+      (propertize (format " [%s] " (persp-name (persp-curr)))
+                  'face 'doom-modeline-persp-name)))
+
+  ;; Redefine 'main' modeline to use our custom segment
+  (doom-modeline-def-modeline 'main
+    '(bar workspace-name window-number modals matches follow buffer-info remote-host buffer-position word-count parrot selection-info)
+    '(objed-state misc-info my-persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs check time)))
 
 ;;; 5.1 LINTING (Flycheck)
 (use-package flycheck
