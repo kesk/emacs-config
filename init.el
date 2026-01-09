@@ -470,6 +470,11 @@
                         (ibuffer-do-sort-by-alphabetic))))))
 
 ;;; 3. BASIC UI & DEFAULTS
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :config
+  (exec-path-from-shell-initialize))
+
 (setq initial-scratch-message nil)
 (setq initial-major-mode 'fundamental-mode)
 
