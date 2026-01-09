@@ -278,6 +278,16 @@
   ;(setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
   (which-key-setup-side-window-bottom))
 
+;;; 2.1.5 HELPFUL (Better Help Buffers)
+(use-package helpful
+  :bind
+  (("C-h f" . helpful-callable)
+   ("C-h v" . helpful-variable)
+   ("C-h k" . helpful-key)
+   ("C-h x" . helpful-command)
+   ("C-h d" . helpful-at-point)
+   ("C-h F" . helpful-function)))
+
 ;;; 2.2 ORG-MODE
 (use-package org
   :init
