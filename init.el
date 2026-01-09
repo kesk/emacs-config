@@ -190,6 +190,7 @@
     "bk" '(kill-current-buffer :which-key "kill buffer")
     "bn" '(evil-buffer-new :which-key "new buffer")
     "br" '(revert-buffer :which-key "revert buffer")
+    "bs" '(save-buffer :which-key "save")
 
     "e"  '(:ignore t :which-key "errors")
     "eb" '(flycheck-buffer :which-key "check buffer")
@@ -209,8 +210,8 @@
     "gd" '(magit-diff-buffer-file :which-key "diff with file")
     "gg" '(magit-status :which-key "magit status")
     "gG" '(magit-status-here :which-key "magit status here")
-    "gj" '(git-gutter:next-hunk :which-key "next change")
-    "gk" '(git-gutter:previous-hunk :which-key "previous change")
+    "gn" '(git-gutter:next-hunk :which-key "next change")
+    "gp" '(git-gutter:previous-hunk :which-key "previous change")
 
     "n" '(:ignore t :which-key "narrow/widen")
     "nd" '(narrow-to-defun :which-key "narrow to defun")
@@ -235,6 +236,7 @@
     "sl" '(consult-line :which-key "search line")
     "sp" '(consult-ripgrep :which-key "search project")
     "ss" '(consult-line :which-key "search line")
+    "sg" '(rgrep :which-key "grep")
 
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
@@ -504,7 +506,6 @@
   (global-ligature-mode t))
 
 (setq-default indent-tabs-mode nil) ; Prefer spaces for indentation
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
 
 (setq ring-bell-function 'ignore)       ; Silent bell
 (global-display-line-numbers-mode t)    ; Line numbers
@@ -747,7 +748,9 @@ If already inside a literal, jump to its end."
     "Rcn" '(clojure-ts-cycle-not :which-key "cycle not")
     "Rck" '(clojure-ts-cycle-keyword-string :which-key "cycle keyword/string")
 
-    "a" '(clojure-ts-align :which-key "align")))
+    "a" '(clojure-ts-align :which-key "align")
+
+    "p" 'parinfer-rust-switch-mode))
 
 (use-package parinfer-rust-mode
   :hook ((clojure-ts-mode . parinfer-rust-mode)
@@ -773,7 +776,8 @@ If already inside a literal, jump to its end."
                '("\\*cider-repl"
                  (display-buffer-reuse-window display-buffer-in-side-window)
                  (side . bottom)
-                 (window-height . 12)))
+                 (window-height . 12)
+                 (dedicated . t)))
 
   (my/local-leader-def
     :keymaps 'cider-mode-map
@@ -783,11 +787,15 @@ If already inside a literal, jump to its end."
     "ep" '(cider-eval-sexp-up-to-point :which-key "eval sexp up to point")
     "eP" '(cider-eval-defun-up-to-point :which-key "eval defun up to point")
     "ec" '(cider-eval-defun-to-comment :which-key "eval defun to comment")
+    "ek" '(cider-kill-last-result :which-key "copy last result")
+
+    "h" '(:ignore t :which-key "help")
+    "hd" '(cider-clojuredocs :which-key "clojure docs")
 
     "r" '(:ignore t :which-key "REPL")
     "r!" '(cider-interrupt :which-key "interrupt")
     "ra" '(cider-apropos :which-key "apropos")
-    "ri" '(cider-inspect :which-key "inspect")
+    "ri" '(cider-inspect-last-result :which-key "inspect last result")
     "rr" '(cider-ns-reload :which-key "reload namespace")
     "rR" '(cider-ns-reload-all :which-key "reload all namespaces")
     "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
@@ -799,8 +807,6 @@ If already inside a literal, jump to its end."
     "rm" '(cider-macroexpand-1 :which-key "macroexpand 1")
     "rM" '(cider-macroexpand-all :which-key "macroexpand all")
     "rn" '(cider-repl-set-ns :which-key "set REPL ns to current"))
-
-      
 
   (my/local-leader-def
     :keymaps 'cider-repl-mode-map
@@ -816,6 +822,29 @@ If already inside a literal, jump to its end."
    :states '(normal visual)
    :keymaps 'cider-repl-mode-map
    "öq" 'cider-quit))
+
+;;; 6.1 MARKDOWN MODE
+(use-package markdown-mode
+  :mode ("\\.md\\'" "\\.markdown\\'")
+  :init (setq markdown-command "markdown")
+  :config
+  (setq markdown-header-scaling t)
+
+  (my/local-leader-def
+    :keymaps 'markdown-mode-map
+    "i" '(:ignore t :which-key "insert")
+    "il" '(markdown-insert-link :which-key "link")
+    "ii" '(markdown-insert-image :which-key "image")
+    "it" '(markdown-insert-table :which-key "table")
+    "ic" '(markdown-insert-code :which-key "code")
+
+    "t" '(:ignore t :which-key "toggle")
+    "ti" '(markdown-toggle-inline-images :which-key "inline images")
+    "tI" '(markdown-toggle-url-hiding :which-key "url hiding")
+
+    "p" '(:ignore t :which-key "preview")
+    "pp" '(markdown-preview :which-key "preview")
+    "pe" '(markdown-export :which-key "export")))
 
 
 ;;; init.el ends here
