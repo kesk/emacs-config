@@ -816,8 +816,33 @@ If already inside a literal, jump to its end."
                  (window-height . 12)
                  (dedicated . t)))
 
+  (defun my/cider-run-start ()
+    "Run (user/start) in the current CIDER REPL."
+    (interactive)
+    (cider-interactive-eval "(user/start)"))
+
+  (defun my/cider-run-stop ()
+    "Run (user/stop) in the current CIDER REPL."
+    (interactive)
+    (cider-interactive-eval "(user/stop)"))
+
+  (defun my/cider-run-go ()
+    "Run (user/go) in the current CIDER REPL."
+    (interactive)
+    (cider-interactive-eval "(user/go)"))
+
+  (defun my/cider-run-reset ()
+    "Run (user/reset) in the current CIDER REPL."
+    (interactive)
+    (cider-interactive-eval "(user/reset)"))
+
   (my/local-leader-def
     :keymaps 'cider-mode-map
+    "x"  '(:ignore t :which-key "system")
+    "xs" '(my/cider-run-start :which-key "start")
+    "xt" '(my/cider-run-stop :which-key "stop")
+    "xx" '(my/cider-run-go :which-key "go")
+    "xr" '(my/cider-run-reset :which-key "reset")
     "e" '(:ignore t :which-key "eval")
     "ee" '(cider-eval-sexp-at-point :which-key "eval sexp at point")
     "ed" '(cider-eval-defun-at-point :which-key "eval defun at point")
@@ -847,6 +872,11 @@ If already inside a literal, jump to its end."
 
   (my/local-leader-def
     :keymaps 'cider-repl-mode-map
+    "x"  '(:ignore t :which-key "system")
+    "xs" '(my/cider-run-start :which-key "start")
+    "xt" '(my/cider-run-stop :which-key "stop")
+    "xx" '(my/cider-run-go :which-key "go")
+    "xr" '(my/cider-run-reset :which-key "reset")
     "q" '(cider-quit :which-key "quit")
     "c" '(cider-repl-clear-buffer :which-key "clear"))
 
