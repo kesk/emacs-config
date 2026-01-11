@@ -136,6 +136,37 @@
 (use-package persp-projectile
   :after perspective)
 
+(use-package tab-bar
+  :init
+  (tab-bar-mode 1)
+  :config
+  (setq tab-bar-show 1)
+  (setq tab-bar-close-button-show nil)
+  (setq tab-bar-new-button-show nil)
+
+  (defun my/persp-tabs-function ()
+    "Return a list of tabs based on current perspectives."
+    (let ((curr-persp (persp-name (persp-curr)))
+          (persps (sort (persp-names) #'string<)))
+      (mapcar (lambda (name)
+                `(,(if (equal name curr-persp) 'current-tab 'tab)
+                  (name . ,name)
+                  (binding . (lambda ()
+                               (interactive)
+                               (persp-switch ,name)))))
+              persps)))
+
+  ;; Tell tab-bar-mode to use our function to find "tabs"
+  (setq tab-bar-tabs-function #'my/persp-tabs-function)
+
+  ;; Ensure updates happen
+  (defun my/force-update-tab-bar (&rest _)
+    (force-mode-line-update t))
+
+  (add-hook 'persp-activated-hook #'my/force-update-tab-bar)
+  (add-hook 'persp-created-hook #'my/force-update-tab-bar)
+  (add-hook 'persp-killed-hook #'my/force-update-tab-bar))
+
 ;;; 2.0.5.5 EDIFF
 (use-package ediff
   :config
@@ -593,19 +624,7 @@
   (setq doom-modeline-height 15        ;; You can adjust this
         doom-modeline-buffer-file-name-style 'file
         doom-modeline-major-mode-icon t
-        doom-modeline-hud nil)
-
-  ;; Custom segment: Current perspective
-  (doom-modeline-def-segment my-persp-name
-    "Display the current perspective name."
-    (when (bound-and-true-p persp-mode)
-      (propertize (format " [%s] " (persp-name (persp-curr)))
-                  'face 'doom-modeline-persp-name)))
-
-  ;; Redefine 'main' modeline to use our custom segment
-  (doom-modeline-def-modeline 'main
-    '(bar workspace-name window-number modals matches follow buffer-info remote-host buffer-position word-count parrot selection-info)
-    '(objed-state misc-info my-persp-name battery grip irc mu4e gnus github debug repl lsp minor-modes input-method indent-info buffer-encoding major-mode process vcs check time)))
+        doom-modeline-hud nil))
 
 ;;; 5.1 LINTING (Flycheck)
 (use-package flycheck
@@ -685,12 +704,12 @@
                            (< (treesit-node-start current) POINT (1- (treesit-node-end current))))))
         (setq current (treesit-node-parent current)))
       current))
-  
+
   (defun my/previous-seq-start ()
     (interactive)
     (when-let ((node (my/find-containing-seq-node (point))))
       (goto-char (treesit-node-start node))))
-  
+
   (defun my/next-seq-end ()
     (interactive)
     (when-let ((node (my/find-containing-seq-node (point))))
