@@ -61,6 +61,13 @@
   :config
   (global-unset-key (kbd "C-z"))) ;; Unset C-z to avoid accidental suspend/undo confusion
 
+(use-package vundo
+  :commands (vundo)
+  :config
+  ;; Better looking tree characters
+  (setq vundo-glyph-alist vundo-unicode-symbols)
+  (setq vundo-compact-display t))
+
 (use-package evil-collection
   :after evil
   :config
@@ -252,6 +259,8 @@
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
     "tf" '(toggle-frame-maximized :which-key "maximize")
+
+    "v" '(vundo :which-key "visual undo")
 
     "w" '(:ignore t :which-key "window")
     "wh" '(evil-window-left :which-key "window left")
