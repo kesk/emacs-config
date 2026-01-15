@@ -276,6 +276,7 @@
     "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
     "pp" '(projectile-persp-switch-project :which-key "switch project")
     "pt" '(persp-switch :which-key "switch perspective")
+    "pr" '(persp-rename :which-key "rename")
 
     "q" '(:ignore t :which-key "quit")
     "qq" 'kill-emacs
