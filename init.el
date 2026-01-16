@@ -976,6 +976,21 @@ If already inside a literal, jump to its end."
     "q" '(cider-quit :which-key "quit")
     "c" '(cider-repl-clear-buffer :which-key "clear"))
 
+  (my/local-leader-def
+    :keymaps 'cider-inspector-mode-map
+    "a" '(cider-inspector-set-max-atom-length :which-key "max atom length")
+    "c" '(cider-inspector-set-max-coll-size :which-key "max coll size")
+    "d" '(cider-inspector-def-current-val :which-key "def current val")
+    "g" '(cider-inspector-refresh :which-key "refresh")
+    "l" '(cider-inspector-pop :which-key "pop")
+    "o" '(cider-inspector-open-thing-at-point :which-key "open thing at point")
+    "p" '(cider-inspector-toggle-pretty-print :which-key "toggle pretty print")
+    "q" '(cider-popup-buffer-quit-function :which-key "quit")
+    "s" '(cider-inspector-toggle-sort-maps :which-key "toggle sort maps")
+    "t" '(cider-inspector-tap-current-val :which-key "tap current val")
+    "v" '(cider-inspector-toggle-view-mode :which-key "toggle view mode")
+    "y" '(cider-inspector-display-analytics :which-key "display analytics"))
+
   (general-define-key
    :states '(normal visual)
    :keymaps 'cider-mode-map
