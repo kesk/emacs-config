@@ -559,6 +559,17 @@
                       (unless (eq ibuffer-sorting-mode 'alphabetic)
                         (ibuffer-do-sort-by-alphabetic))))))
 
+(use-package dired
+  :ensure nil
+  :config
+  (setq dired-listing-switches "-agho --group-directories-first")
+  (setq dired-dwim-target t)
+  (general-define-key
+   :states 'normal
+   :keymaps 'dired-mode-map
+   "h" 'dired-up-directory
+   "l" 'dired-find-file))
+
 ;;; 3. BASIC UI & DEFAULTS
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
