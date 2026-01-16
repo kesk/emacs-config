@@ -577,6 +577,20 @@
 (setq initial-frame-alist '((width . 150) (height . 60)))
 (setq default-frame-alist '((width . 150) (height . 60)))
 
+(defun my/center-frame ()
+  "Center the current frame."
+  (interactive)
+  (let* ((width (frame-pixel-width))
+         (height (frame-pixel-height))
+         (screen-width (display-pixel-width))
+         (screen-height (display-pixel-height))
+         (left (max 0 (/ (- screen-width width) 2)))
+         (top (max 0 (/ (- screen-height height) 2))))
+    (set-frame-position (selected-frame) left top)))
+
+;; Center the frame after startup
+(add-hook 'window-setup-hook #'my/center-frame)
+
 (set-face-attribute 'default nil :family "Fira Code" :height 120 :weight 'normal)
 (set-face-attribute 'fixed-pitch nil :family "Fira Code" :height 120 :weight 'normal)
 
