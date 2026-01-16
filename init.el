@@ -564,11 +564,16 @@
   :config
   (setq dired-listing-switches "-agho --group-directories-first")
   (setq dired-dwim-target t)
+  (setq dired-kill-when-opening-new-dired-buffer t) ; Reuse same buffer
   (general-define-key
    :states 'normal
    :keymaps 'dired-mode-map
    "h" 'dired-up-directory
    "l" 'dired-find-file))
+
+(use-package nerd-icons-dired
+  :hook
+  (dired-mode . nerd-icons-dired-mode))
 
 ;;; 3. BASIC UI & DEFAULTS
 (use-package exec-path-from-shell
