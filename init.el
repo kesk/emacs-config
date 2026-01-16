@@ -144,7 +144,7 @@
   (setq tab-bar-close-button-show nil)
   (setq tab-bar-new-button-show nil)
 
-  (defun my/persp-tabs-function ()
+  (defun my/persp-tabs-function (&optional _)
     "Return a list of tabs based on current perspectives."
     (let ((curr-persp (persp-name (persp-curr)))
           (persps (sort (persp-names) #'string<)))
@@ -403,6 +403,32 @@
 
 (use-package org-appear
   :hook (org-mode . org-appear-mode))
+
+;;; 2.2.1 VERB (REST Client)
+(use-package verb
+  :after org
+  :config
+  (define-key org-mode-map (kbd "C-c C-r") verb-command-map)
+  (my/local-leader-def
+    :keymaps 'org-mode-map
+    "r"     '(:ignore t :which-key "verb")
+    "r RET" '(verb-send-request-on-point-no-window :which-key "send (silent)")
+    "re"    '(verb-export-request-on-point :which-key "export")
+    "rf"    '(verb-send-request-on-point :which-key "send (here)")
+    "rk"    '(verb-kill-all-response-buffers :which-key "kill responses")
+    "rr"    '(verb-send-request-on-point-display :which-key "send (switch)")
+    "rs"    '(verb-send-request-on-point-other-window :which-key "send (stay)")
+    "rv"    '(verb-set-var :which-key "set var")
+    "rx"    '(verb-show-vars :which-key "show vars"))
+
+  (my/local-leader-def
+    :keymaps 'verb-response-body-mode-map
+    "h" '(verb-toggle-show-headers :which-key "toggle headers")
+    "f" '(verb-re-send-request :which-key "re-send")
+    "k" '(verb-kill-response-buffer-and-window :which-key "kill")
+    "h" '(verb-toggle-show-headers :which-key "toggle headers")
+    "s" '(verb-show-request :which-key "show request")
+    "w" '(verb-re-send-request-eww :which-key "re-send (eww)")))
 
 ;;; 2.3 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
 (use-package orderless
