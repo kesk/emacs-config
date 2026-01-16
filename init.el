@@ -571,6 +571,14 @@
    "h" 'dired-up-directory
    "l" 'dired-find-file))
 
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (general-define-key
+   :states 'normal
+   :keymaps 'dired-mode-map
+   "." 'dired-hide-dotfiles-mode))
+
 (use-package nerd-icons-dired
   :hook
   (dired-mode . nerd-icons-dired-mode))
