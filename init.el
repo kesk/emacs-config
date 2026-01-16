@@ -215,14 +215,17 @@
 (use-package general
   :after evil
   :config
+  ;; Explicitly unbind SPC in motion state to allow using it as a leader key
+  (define-key evil-motion-state-map " " nil)
+
   (general-create-definer my/leader-def
-    :states '(normal visual insert emacs)
+    :states '(normal visual insert emacs motion)
     :prefix "SPC"
     :non-normal-prefix "s-SPC"
     :global-prefix "s-SPC")
 
   (general-create-definer my/local-leader-def
-    :states '(normal visual insert emacs)
+    :states '(normal visual insert emacs motion)
     :prefix "ö"
     :non-normal-prefix "s-ö"
     :global-prefix "s-ö")
