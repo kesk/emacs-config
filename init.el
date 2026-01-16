@@ -137,10 +137,8 @@
   :after perspective)
 
 (use-package tab-bar
-  :init
-  (tab-bar-mode 1)
   :config
-  (setq tab-bar-show 1)
+  (setq tab-bar-show t) ; Always show the tab bar
   (setq tab-bar-close-button-show nil)
   (setq tab-bar-new-button-show nil)
 
@@ -165,7 +163,9 @@
 
   (add-hook 'persp-activated-hook #'my/force-update-tab-bar)
   (add-hook 'persp-created-hook #'my/force-update-tab-bar)
-  (add-hook 'persp-killed-hook #'my/force-update-tab-bar))
+  (add-hook 'persp-killed-hook #'my/force-update-tab-bar)
+
+  (tab-bar-mode 1))
 
 ;;; 2.0.5.5 EDIFF
 (use-package ediff
