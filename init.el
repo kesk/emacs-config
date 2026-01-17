@@ -323,6 +323,7 @@
   :config
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
   (setq which-key-separator " -> ") ;; Add more spacing between columns
+  (add-hook 'which-key-init-buffer-hook 'ligature-mode)
   (setq which-key-sorting-type 'which-key-key-order)
   ;(setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
   (which-key-setup-side-window-bottom))
