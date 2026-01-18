@@ -324,8 +324,6 @@
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
   (setq which-key-separator " -> ") ;; Add more spacing between columns
   (add-hook 'which-key-init-buffer-hook 'ligature-mode)
-  (setq which-key-sorting-type 'which-key-key-order)
-  ;(setq which-key-sorting-type 'which-key-description-order) ;; Sort by description
   (which-key-setup-side-window-bottom))
 
 ;;; 2.1.5 HELPFUL (Better Help Buffers)
@@ -632,7 +630,7 @@
                                "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
                                "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
                                "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
-  (global-ligature-mode t))
+  (global-ligature-mode 1))
 
 (setq-default indent-tabs-mode nil) ; Prefer spaces for indentation
 
@@ -933,6 +931,15 @@ If already inside a literal, jump to its end."
     (interactive)
     (cider-interactive-eval "(user/reset)"))
 
+  (defun my/cider-inspect-tapped ()
+    (interactive)
+    (cider-interactive-eval "user/tapped")
+    (cider-inspect-last-result))
+
+  (defun my/cider-reset-tapped ()
+    (interactive)
+    (cider-interactive-eval "(user/reset-tapped)"))
+
   (my/local-leader-def
     :keymaps 'cider-mode-map
     "x"  '(:ignore t :which-key "system")
@@ -954,18 +961,21 @@ If already inside a literal, jump to its end."
     "r" '(:ignore t :which-key "REPL")
     "r!" '(cider-interrupt :which-key "interrupt")
     "ra" '(cider-apropos :which-key "apropos")
-    "ri" '(cider-inspect-last-result :which-key "inspect last result")
-    "rr" '(cider-ns-reload :which-key "reload namespace")
-    "rR" '(cider-ns-reload-all :which-key "reload all namespaces")
-    "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
     "rb" '(cider-switch-to-repl-buffer :which-key "switch to REPL buffer")
-    "rq" '(cider-quit :which-key "quit CIDER")
-    "ru" '(cider-undef :which-key "undef")
-    "rU" '(cider-undef-all :which-key "undef all")
+    "rc" '(cider-repl-clear-buffer :which-key "clear REPL buffer")
     "rd" '(cider-debug-defun-at-point :which-key "debug defun at point")
+    "ri" '(cider-inspect-last-result :which-key "inspect last result")
+    "rl" '((lambda () (interactive) (cider-load-file (buffer-file-name))) :which-key "load current file")
     "rm" '(cider-macroexpand-1 :which-key "macroexpand 1")
     "rM" '(cider-macroexpand-all :which-key "macroexpand all")
-    "rn" '(cider-repl-set-ns :which-key "set REPL ns to current"))
+    "rn" '(cider-repl-set-ns :which-key "set REPL ns to current")
+    "rq" '(cider-quit :which-key "quit CIDER")
+    "rr" '(cider-ns-reload :which-key "reload namespace")
+    "rR" '(cider-ns-reload-all :which-key "reload all namespaces")
+    "rt" '(my/cider-inspect-tapped :which-key "inspect tapped values")
+    "rT" '(my/cider-reset-tapped :which-key "empty tapped values")
+    "ru" '(cider-undef :which-key "undef")
+    "rU" '(cider-undef-all :which-key "undef all"))
 
   (my/local-leader-def
     :keymaps 'cider-repl-mode-map
