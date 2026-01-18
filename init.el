@@ -1052,9 +1052,16 @@ Each line in the content is prefixed with its line number."
                           (buffer-file-name))
                       (buffer-name)))
          (line-start (line-number-at-pos start))
-         (line-end (line-number-at-pos end))
+         (line-end (let ((end-line (line-number-at-pos end)))
+                     (if (and (> end start)
+                              (eq (char-before end) ?\n))
+                         (1- end-line)
+                       end-line)))
          (content (buffer-substring-no-properties start end))
-         (lines (split-string content "\n"))
+         (lines (let ((l (split-string content "\n")))
+                  (if (and l (string= "" (car (last l))))
+                      (butlast l)
+                    l)))
          (current-line line-start)
          (numbered-content
           (mapconcat (lambda (line)
@@ -1063,9 +1070,10 @@ Each line in the content is prefixed with its line number."
                          formatted))
                      lines
                      "\n"))
-         (formatted-text (format "From: %s lines %d-%d\n%s"
+         (formatted-text (format "From: %s lines %d-%d\n\n%s"
                                  file-path line-start line-end numbered-content)))
     (kill-new formatted-text)
+    (deactivate-mark)
     (message "Copied with reference: %s lines %d-%d" file-path line-start line-end)))
 
 ;;; init.el ends here
