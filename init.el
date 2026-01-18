@@ -235,6 +235,9 @@
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
     "TAB" '(persp-switch :which-key "switch perspective")
 
+    "c"  '(:ignore t :which-key "code")
+    "cr" '(my/copy-with-reference :which-key "copy with reference")
+
     "b"  '(:ignore t :which-key "buffer")
     "bb" '(consult-buffer :which-key "switch buffer")
     "bB" '(ibuffer :which-key "list all buffers (ibuffer)")
@@ -1035,5 +1038,34 @@ If already inside a literal, jump to its end."
     "pp" '(markdown-preview :which-key "preview")
     "pe" '(markdown-export :which-key "export")))
 
+
+
+;;; 7. CUSTOM COMMANDS
+(defun my/copy-with-reference (start end)
+  "Copy the selected region with file path and line numbers.
+Each line in the content is prefixed with its line number."
+  (interactive "r")
+  (let* ((project-root (ignore-errors (projectile-project-root)))
+         (file-path (if (buffer-file-name)
+                        (if project-root
+                            (file-relative-name (buffer-file-name) project-root)
+                          (buffer-file-name))
+                      (buffer-name)))
+         (line-start (line-number-at-pos start))
+         (line-end (line-number-at-pos end))
+         (content (buffer-substring-no-properties start end))
+         (lines (split-string content "\n"))
+         (current-line line-start)
+         (numbered-content
+          (mapconcat (lambda (line)
+                       (let ((formatted (format "%4d | %s" current-line line)))
+                         (setq current-line (1+ current-line))
+                         formatted))
+                     lines
+                     "\n"))
+         (formatted-text (format "From: %s lines %d-%d\n%s"
+                                 file-path line-start line-end numbered-content)))
+    (kill-new formatted-text)
+    (message "Copied with reference: %s lines %d-%d" file-path line-start line-end)))
 
 ;;; init.el ends here
