@@ -636,6 +636,9 @@
   (global-ligature-mode 1))
 
 (setq-default indent-tabs-mode nil) ; Prefer spaces for indentation
+(setq-default fill-column 90)      ; Set wrap column to 90
+(add-hook 'text-mode-hook 'visual-line-mode)
+(add-hook 'text-mode-hook 'turn-on-auto-fill)
 
 (setq ring-bell-function 'ignore)       ; Silent bell
 (global-display-line-numbers-mode t)    ; Line numbers
