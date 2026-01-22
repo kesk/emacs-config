@@ -202,9 +202,9 @@
 
 (use-package git-gutter-fringe
   :config
-  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
-  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+  (define-fringe-bitmap 'git-gutter-fr:added [240 240 240 240 240 240 240 240 240 240 240 240 240 240 240 240] nil nil 'center)
+  (define-fringe-bitmap 'git-gutter-fr:modified [240 240 240 240 240 240 240 240 240 240 240 240 240 240 240 240] nil nil 'center)
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240 240 224 192 128] nil nil 'center))
 
 ;;; 2.0.7.5 WS-BUTLER (Clean whitespace only on changed lines)
 (use-package ws-butler
