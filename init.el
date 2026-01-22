@@ -491,10 +491,6 @@
         ([backtab] . corfu-previous)
         ("S-SPC" . corfu-insert-separator)))
 
-(use-package yasnippet
-  :config
-  (yas-global-mode 1))
-
 ;; Enable rich annotations using the Marginalia package
 (use-package marginalia
   :after vertico
@@ -873,6 +869,23 @@ If already inside a literal, jump to its end."
     "j" '(cider-jack-in :which-key "jack in REPL")
     "c" '(cider-connect :which-key "connect to REPL")
 
+    "R" '(:ignore t :which-key "refactor")
+    "Ra" '(clojure-ts-add-arity :which-key "add arity")
+
+    "Rt" '(:ignore t :which-key "threading")
+    "RtF" '(clojure-ts-thread-first-all :which-key "thread first all")
+    "Rtf" '(clojure-ts-thread-first :which-key "thread first")
+    "RtL" '(clojure-ts-thread-last-all :which-key "thread last all")
+    "Rtl" '(clojure-ts-thread-last :which-key "thread last")
+    "RtU" '(clojure-ts-unwind-all :which-key "unwind all")
+    "Rtu" '(clojure-ts-unwind :which-key "unwind")
+
+    "Rc" '(:ignore t :which-key "cycle")
+    "Rcp" '(clojure-ts-cycle-privacy :which-key "cycle privacy")
+    "Rcc" '(clojure-ts-cycle-conditional :which-key "cycle if/if-not")
+    "Rcn" '(clojure-ts-cycle-not :which-key "cycle not")
+    "Rck" '(clojure-ts-cycle-keyword-string :which-key "cycle keyword/string")
+
     "a" '(clojure-ts-align :which-key "align")
 
     "p" 'parinfer-rust-switch-mode))
@@ -884,80 +897,6 @@ If already inside a literal, jump to its end."
   ;; Enable evil-local-mode to ensure Evil works correctly with Parinfer
   ;; (add-hook 'parinfer-rust-mode-hook (lambda ()
   ;;                                      (evil-local-mode 1)))
-
-(use-package clj-refactor
-  :after clojure-ts-mode
-  :config
-  (setq cljr-warn-on-eval nil)
-  (add-hook 'clojure-ts-mode-hook 'clj-refactor-mode)
-  (add-hook 'clj-refactor-mode-hook 'yas-minor-mode)
-
-  (my/local-leader-def
-    :keymaps 'clojure-ts-mode-map
-    "R" '(:ignore t :which-key "refactor")
-
-    "Ra" '(:ignore t :which-key "add")
-    "Rai" '(cljr-add-import-to-ns :which-key "import")
-    "Rar" '(cljr-add-require-to-ns :which-key "require")
-    "Ram" '(cljr-add-missing-libspec :which-key "missing libspec")
-    "Raa" '(clojure-ts-add-arity :which-key "add arity")
-    "Ras" '(cljr-add-stubs :which-key "stubs")
-
-    "Rc" '(:ignore t :which-key "cycle/clean")
-    "Rcc" '(cljr-clean-ns :which-key "clean ns")
-    "Rcp" '(clojure-ts-cycle-privacy :which-key "cycle privacy")
-    "Rci" '(clojure-ts-cycle-conditional :which-key "cycle if/if-not")
-    "Rcn" '(clojure-ts-cycle-not :which-key "cycle not")
-    "Rck" '(clojure-ts-cycle-keyword-string :which-key "cycle keyword/string")
-    "Rct" '(cljr-cycle-thread :which-key "cycle thread") ; clojure-ts doesn't seem to have a generic cycle-thread
-
-    "Rd" '(:ignore t :which-key "destructure")
-    "Rdk" '(cljr-destructure-keys :which-key "destructure keys")
-
-    "Re" '(:ignore t :which-key "extract/expand")
-    "Rec" '(cljr-extract-constant :which-key "extract constant")
-    "Red" '(cljr-extract-def :which-key "extract def")
-    "Ref" '(cljr-extract-function :which-key "extract function")
-    "Rel" '(cljr-expand-let :which-key "expand let")
-
-    "Rf" '(:ignore t :which-key "find/create")
-    "Rfu" '(cljr-find-usages :which-key "find usages")
-    "Rfe" '(cljr-create-fn-from-example :which-key "create fn from example")
-
-    "Rh" '(:ignore t :which-key "hotload")
-    "Rhd" '(cljr-hotload-dependency :which-key "hotload dependency")
-
-    "Ri" '(:ignore t :which-key "intro/inline")
-    "Ril" '(cljr-introduce-let :which-key "introduce let")
-    "Ris" '(cljr-inline-symbol :which-key "inline symbol")
-
-    "Rm" '(:ignore t :which-key "move")
-    "Rmf" '(cljr-move-form :which-key "move form")
-    "Rml" '(cljr-move-to-let :which-key "move to let")
-
-    "Rp" '(:ignore t :which-key "project/promote")
-    "Rpc" '(cljr-project-clean :which-key "project clean")
-    "Rpf" '(cljr-promote-function :which-key "promote function")
-    "Rpp" '(cljr-add-project-dependency :which-key "add project dep")
-    "Rpu" '(cljr-update-project-dependencies :which-key "update project deps")
-
-    "Rr" '(:ignore t :which-key "rename/remove")
-    "Rrf" '(cljr-rename-file-or-dir :which-key "rename file/dir")
-    "Rrs" '(cljr-rename-symbol :which-key "rename symbol")
-    "Rrl" '(cljr-remove-let :which-key "remove let")
-
-    "Rs" '(:ignore t :which-key "show/sort/stop")
-    "Rsc" '(cljr-show-changelog :which-key "show changelog")
-    "Rsp" '(cljr-sort-project-dependencies :which-key "sort project deps")
-    "Rsr" '(cljr-stop-referring :which-key "stop referring")
-
-    "Rt" '(:ignore t :which-key "threading")
-    "RtF" '(clojure-ts-thread-first-all :which-key "thread first all")
-    "Rtf" '(clojure-ts-thread-first :which-key "thread first")
-    "RtL" '(clojure-ts-thread-last-all :which-key "thread last all")
-    "Rtl" '(clojure-ts-thread-last :which-key "thread last")
-    "RtU" '(clojure-ts-unwind-all :which-key "unwind all")
-    "Rtu" '(clojure-ts-unwind :which-key "unwind")))
 
 (use-package cider
   :after clojure-ts-mode
