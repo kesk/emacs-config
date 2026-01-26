@@ -1016,7 +1016,13 @@ If already inside a literal, jump to its end."
   (general-define-key
    :states '(normal visual)
    :keymaps 'cider-repl-mode-map
-   "öq" 'cider-quit))
+   "öq" 'cider-quit)
+
+  (general-define-key
+   :states '(normal insert)
+   :keymaps 'cider-repl-mode-map
+   "C-j" #'cider-repl-next-input
+   "C-k" #'cider-repl-previous-input))
 
 ;;; 6.1 MARKDOWN MODE
 (use-package markdown-mode
