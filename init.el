@@ -276,7 +276,7 @@
     "o" '(:ignore t :which-key "org")
     "oa" '(org-agenda :which-key "open agenda")
     "on" '((lambda () (interactive) (find-file-other-window (expand-file-name "notes.org" org-directory))) :which-key "open main notes file")
-    "ot" '(org-agenda-list :which-key "open todo list")
+    "ot" '(org-todo-list :which-key "open todo list")
 
     "p" '(:ignore t :which-key "project")
     "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
