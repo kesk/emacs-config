@@ -113,70 +113,39 @@
 ;; Universal Argument Map
 (global-set-key (kbd "C-S-u") 'universal-argument)
 
-;;; 2.0.5 PERSPECTIVE (Workspaces)
-(use-package perspective
-  :bind
-  ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
-  :init
-  (setq persp-show-modestring nil) ; Disable default modeline to avoid conflicts with Doom Modeline
-  (persp-mode 1)
+;;; 2.0.5 TABSPACES (Workspaces)
+(use-package tabspaces
+  :hook (after-init . tabspaces-mode)
+  :commands (tabspaces-switch-or-create-workspace
+             tabspaces-open-or-create-project-and-workspace)
   :custom
-  (persp-mode-prefix-key (kbd "C-c p"))
+  (tabspaces-use-filtered-buffers-is-default t)
+  (tabspaces-default-tab "Default")
+  (tabspaces-remove-to-default t)
+  (tabspaces-include-buffers '("*scratch*"))
+  ;; Session management
+  (tabspaces-session t)
+  (tabspaces-session-auto-restore t)
   :config
-  ;; Fix for performance issue with parinfer-rust-mode
-  ;; parinfer-rust-mode creates and kills a *parinfer* buffer on every keystroke.
-  ;; persp-maybe-kill-buffer (in kill-buffer-query-functions) scans all perspectives
-  ;; and switches context, causing massive lag. This advice skips that check for *parinfer*.
-  (defun my/persp-ignore-parinfer-buffer (orig-fun &rest args)
-    (if (string= (buffer-name) "*parinfer*")
-        t
-      (apply orig-fun args)))
+  ;; Filter Buffers for Consult
+  (with-eval-after-load 'consult
+    ;; Hide full buffer list (still available with "b" prefix)
+    (consult-customize consult--source-buffer :hidden t :default nil)
+    ;; Set consult-workspace buffer list
+    (defvar consult--source-workspace
+      (list :name     "Workspace Buffers"
+            :narrow   ?w
+            :history  'buffer-name-history
+            :category 'buffer
+            :state    #'consult--buffer-state
+            :default  t
+            :items    (lambda () (consult--buffer-query
+                                  :predicate #'tabspaces--local-buffer-p
+                                  :sort 'visibility
+                                  :as #'buffer-name)))
 
-  (advice-add 'persp-maybe-kill-buffer :around #'my/persp-ignore-parinfer-buffer)
-
-  ;; Switch to perspective by index (1-9) using CMD+n (M-n)
-  (dotimes (i 9)
-    (let ((n (+ 1 i)))
-      (global-set-key (kbd (format "M-%d" n))
-                      (lambda () (interactive)
-                        (let ((names (sort (persp-names) #'string<)))
-                          (if (> n (length names))
-                              (message "No perspective %d" n)
-                            (persp-switch (nth (1- n) names)))))))))
-
-(use-package persp-projectile
-  :after perspective)
-
-(use-package tab-bar
-  :config
-  (setq tab-bar-show t) ; Always show the tab bar
-  (setq tab-bar-close-button-show nil)
-  (setq tab-bar-new-button-show nil)
-
-  (defun my/persp-tabs-function (&optional _)
-    "Return a list of tabs based on current perspectives."
-    (let ((curr-persp (persp-name (persp-curr)))
-          (persps (sort (persp-names) #'string<)))
-      (mapcar (lambda (name)
-                `(,(if (equal name curr-persp) 'current-tab 'tab)
-                  (name . ,name)
-                  (binding . (lambda ()
-                               (interactive)
-                               (persp-switch ,name)))))
-              persps)))
-
-  ;; Tell tab-bar-mode to use our function to find "tabs"
-  (setq tab-bar-tabs-function #'my/persp-tabs-function)
-
-  ;; Ensure updates happen
-  (defun my/force-update-tab-bar (&rest _)
-    (force-mode-line-update t))
-
-  (add-hook 'persp-activated-hook #'my/force-update-tab-bar)
-  (add-hook 'persp-created-hook #'my/force-update-tab-bar)
-  (add-hook 'persp-killed-hook #'my/force-update-tab-bar)
-
-  (tab-bar-mode 1))
+      "Workspace buffer candidate source for `consult-buffer'.")
+    (add-to-list 'consult-buffer-sources 'consult--source-workspace)))
 
 ;;; 2.0.5.5 EDIFF
 (use-package ediff
@@ -244,7 +213,7 @@
   (my/leader-def
     "/" '(consult-line :which-key "search buffer")
     "SPC" '(projectile-find-file :which-key "find project file") ; Bind SPC SPC here
-    "TAB" '(persp-switch :which-key "switch perspective")
+    "TAB" '(tabspaces-switch-or-create-workspace :which-key "switch workspace")
 
     "c"  '(:ignore t :which-key "code")
     "cr" '(my/copy-with-reference :which-key "copy with reference")
@@ -290,10 +259,10 @@
     "ot" '(org-todo-list :which-key "open todo list")
 
     "p" '(:ignore t :which-key "project")
-    "pk" '((lambda () (interactive) (persp-kill (persp-current-name))) :which-key "kill current perspective")
-    "pp" '(projectile-persp-switch-project :which-key "switch project")
-    "pt" '(persp-switch :which-key "switch perspective")
-    "pr" '(persp-rename :which-key "rename")
+    "pk" '(tabspaces-close-workspace :which-key "close workspace")
+    "pp" '(tabspaces-open-or-create-project-and-workspace :which-key "switch project")
+    "pt" '(tabspaces-switch-or-create-workspace :which-key "switch workspace")
+    "pr" '(tabspaces-rename-workspace :which-key "rename")
 
     "q" '(:ignore t :which-key "quit")
     "qq" 'kill-emacs
@@ -550,10 +519,7 @@
          ("M-y" . consult-yank-pop))
   :hook (completion-list-mode . consult-preview-at-point-mode)
   :config
-  (setq consult-project-function (lambda (_) (projectile-project-root)))
-  ;; Use consult-buffer to show buffers from current perspective by default
-  (consult-customize consult--source-buffer :hidden t :default nil)
-  (add-to-list 'consult-buffer-sources persp-consult-source))
+  (setq consult-project-function (lambda (_) (projectile-project-root))))
 
 (use-package wgrep
   :config
@@ -609,6 +575,11 @@
 (setq mac-command-modifier 'meta)
 (setq mac-option-modifier nil)
 (setq mac-right-option-modifier 'super)
+
+;; Bind Cmd+1 through Cmd+9 (M-1..M-9) to switch workspaces (tabs)
+(dotimes (i 9)
+  (global-set-key (kbd (format "M-%d" (+ i 1)))
+                  `(lambda () (interactive) (tab-bar-select-tab ,(+ i 1)))))
 
 ;; Set initial frame size (width x height)
 (setq initial-frame-alist '((width . 150) (height . 60)))
