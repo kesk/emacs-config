@@ -123,6 +123,17 @@
   :custom
   (persp-mode-prefix-key (kbd "C-c p"))
   :config
+  ;; Fix for performance issue with parinfer-rust-mode
+  ;; parinfer-rust-mode creates and kills a *parinfer* buffer on every keystroke.
+  ;; persp-maybe-kill-buffer (in kill-buffer-query-functions) scans all perspectives
+  ;; and switches context, causing massive lag. This advice skips that check for *parinfer*.
+  (defun my/persp-ignore-parinfer-buffer (orig-fun &rest args)
+    (if (string= (buffer-name) "*parinfer*")
+        t
+      (apply orig-fun args)))
+
+  (advice-add 'persp-maybe-kill-buffer :around #'my/persp-ignore-parinfer-buffer)
+
   ;; Switch to perspective by index (1-9) using CMD+n (M-n)
   (dotimes (i 9)
     (let ((n (+ 1 i)))
