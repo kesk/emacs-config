@@ -19,6 +19,7 @@ tree-sitter/
 parinfer-rust/
 projectile-bookmarks.eld
 custom.el
+secrets.el
 
 .tmp/
 ielm-history.eld

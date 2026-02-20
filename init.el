@@ -30,6 +30,10 @@
 (when (file-exists-p custom-file)
   (load custom-file))
 
+(let ((secrets-file (expand-file-name "secrets.el" user-emacs-directory)))
+  (when (file-exists-p secrets-file)
+    (load secrets-file)))
+
 ;;; 1.1 PERFORMANCE
 (use-package gcmh
   :init
@@ -219,6 +223,11 @@
 
     "c"  '(:ignore t :which-key "code")
     "cr" '(my/copy-with-reference :which-key "copy with reference")
+
+    "a"  '(:ignore t :which-key "ai")
+    "aa" '(gptel :which-key "gptel (chat)")
+    "as" '(gptel-send :which-key "gptel (send)")
+    "am" '(gptel-menu :which-key "gptel (menu)")
 
     "b"  '(:ignore t :which-key "buffer")
     "bb" '(consult-buffer :which-key "switch buffer")
@@ -564,10 +573,22 @@
   :hook
   (dired-mode . nerd-icons-dired-mode))
 
+;;; 2.4 AI (gptel)
+(use-package gptel
+  :ensure t
+  :commands (gptel gptel-send gptel-menu)
+  :config
+  (setq gptel-model 'gemini-2.0-flash
+        gptel-backend (gptel-make-gemini "Gemini"
+                        :key (lambda () (or (bound-and-true-p GEMINI_API_KEY)
+                                            (getenv "GEMINI_API_KEY")))
+                        :stream t)))
+
 ;;; 3. BASIC UI & DEFAULTS
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
   :config
+  (add-to-list 'exec-path-from-shell-variables "GEMINI_API_KEY")
   (exec-path-from-shell-initialize))
 
 (setq initial-scratch-message nil)
