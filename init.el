@@ -584,6 +584,13 @@
                                             (getenv "GEMINI_API_KEY")))
                         :stream t)))
 
+(use-package llm-tool-collection
+  :load-path "/Users/seb/Developer/llm-tool-collection"
+  :after gptel
+  :config
+  (mapcar (apply-partially #'apply #'gptel-make-tool)
+          (llm-tool-collection-get-all)))
+
 ;;; 3. BASIC UI & DEFAULTS
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
