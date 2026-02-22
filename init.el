@@ -261,8 +261,8 @@
 
     "n" '(:ignore t :which-key "narrow/widen")
     "nd" '(narrow-to-defun :which-key "narrow to defun")
-    "nr" '(narrow-to-region :ignore t :which-key "narrow to reguin")
-    "nw" '(widen :ignore t :which-key "widen")
+    "nr" '(narrow-to-region :which-key "narrow to region")
+    "nw" '(widen :which-key "widen")
 
     "o" '(:ignore t :which-key "org")
     "oa" '(org-agenda :which-key "open agenda")
