@@ -322,6 +322,8 @@
 
 ;;; 2.1.5 HELPFUL (Better Help Buffers)
 (use-package helpful
+  :init
+  (setq-default evil-lookup-func #'helpful-at-point)
   :bind
   (("C-h f" . helpful-callable)
    ("C-h v" . helpful-variable)
@@ -734,8 +736,7 @@
   (modify-syntax-entry ?: "w") ; Treat colon as part of word
   (modify-syntax-entry ?/ "w") ; Treat slash as part of word
   (modify-syntax-entry ?. "w") ; Treat dot as part of word
-  (modify-syntax-entry ?* "w") ; Treat asterisk as part of word
-  (setq-local evil-lookup-func (lambda () (describe-symbol (symbol-at-point)))))
+  (modify-syntax-entry ?* "w")) ; Treat asterisk as part of word
 
 (add-hook 'emacs-lisp-mode-hook 'my-elisp-syntax-hook)
 
