@@ -950,6 +950,11 @@ If already inside a literal, jump to its end."
     (interactive)
     (cider-interactive-eval "(user/reset)"))
 
+  (defun my/cider-run-reload-all-ns ()
+    "Run (user/reload-all-ns) in the current CIDER REPL."
+    (interactive)
+    (cider-interactive-eval "(user/reload-all-ns)"))
+
   (defun my/cider-inspect-tapped ()
     (interactive)
     (cider-interactive-eval "user/tapped")
@@ -965,7 +970,8 @@ If already inside a literal, jump to its end."
     "xs" '(my/cider-run-start :which-key "start")
     "xt" '(my/cider-run-stop :which-key "stop")
     "xx" '(my/cider-run-go :which-key "go")
-    "xr" '(my/cider-run-reset :which-key "reset")
+    "xe" '(my/cider-run-reset :which-key "reset")
+    "xr" '(my/cider-run-reload-all-ns :which-key "reload all namespaces")
     "e" '(:ignore t :which-key "eval")
     "ee" '(cider-eval-sexp-at-point :which-key "eval sexp at point")
     "ed" '(cider-eval-defun-at-point :which-key "eval defun at point")
@@ -1002,7 +1008,8 @@ If already inside a literal, jump to its end."
     "xs" '(my/cider-run-start :which-key "start")
     "xt" '(my/cider-run-stop :which-key "stop")
     "xx" '(my/cider-run-go :which-key "go")
-    "xr" '(my/cider-run-reset :which-key "reset")
+    "xe" '(my/cider-run-reset :which-key "reset")
+    "xr" '(my/cider-run-reload-all-ns :which-key "reload all namespaces")
     "q" '(cider-quit :which-key "quit")
     "c" '(cider-repl-clear-buffer :which-key "clear"))
 
