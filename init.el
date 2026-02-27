@@ -25,6 +25,12 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(use-package exec-path-from-shell
+  :if (memq window-system '(mac ns))
+  :config
+  (add-to-list 'exec-path-from-shell-variables "GEMINI_API_KEY")
+  (exec-path-from-shell-initialize))
+
 ;;; Separate custom-file to keep init.el clean
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (when (file-exists-p custom-file)
@@ -555,6 +561,12 @@
   :ensure nil
   :config
   (setq dired-listing-switches "-agho --group-directories-first")
+  (when (eq system-type 'darwin)
+    (let ((gls (executable-find "gls")))
+      (if gls
+          (setq insert-directory-program gls)
+        ;; If gls is not found, remove --group-directories-first from switches
+        (setq dired-listing-switches "-agho"))))
   (setq dired-dwim-target t)
   (setq dired-kill-when-opening-new-dired-buffer t) ; Reuse same buffer
   (general-define-key
@@ -594,12 +606,6 @@
           (llm-tool-collection-get-all)))
 
 ;;; 3. BASIC UI & DEFAULTS
-(use-package exec-path-from-shell
-  :if (memq window-system '(mac ns))
-  :config
-  (add-to-list 'exec-path-from-shell-variables "GEMINI_API_KEY")
-  (exec-path-from-shell-initialize))
-
 (setq initial-scratch-message nil)
 (setq initial-major-mode 'fundamental-mode)
 
