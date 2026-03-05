@@ -468,9 +468,9 @@
                   (kill-local-variable 'my/parinfer-was-enabled))))))
 
 ;;; EXPAND REGION
-(use-package expand-region
-  :bind (("M-k" . er/expand-region)
-         ("M-j" . er/contract-region)))
+(use-package expreg
+  :bind (("M-k" . expreg-expand)
+         ("M-j" . expreg-contract)))
 
 ;;; 2.3 CORFU (Auto-completion)
 (use-package corfu
