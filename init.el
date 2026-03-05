@@ -171,8 +171,9 @@
     "Kill Ediff-specific temporary buffers upon quitting Ediff."
     (dolist (buf (buffer-list))
       (let ((buffer-name (buffer-name buf)))
-        (when (or (member buffer-name '("*ediff-errors*" "*ediff-diff*" "*Ediff Registry*" "*ediff-fine-diff*" "*Ediff Control Panel*"))
-                  (string-match-p "^FILE=" buffer-name))
+        (when (and buffer-name
+                   (or (member buffer-name '("*ediff-errors*" "*ediff-diff*" "*Ediff Registry*" "*ediff-fine-diff*" "*Ediff Control Panel*"))
+                       (string-match-p "^FILE=" buffer-name)))
           (when (buffer-live-p buf)
             (kill-buffer buf))))))
 
