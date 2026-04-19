@@ -10,6 +10,12 @@
 (unless package-archive-contents
   (package-refresh-contents))
 
+;; Performance tracking
+(setq use-package-compute-statistics t)
+
+(require 'use-package)
+(setq use-package-always-ensure t)
+
 ;;; Distinct C-i and TAB
 ;; This allows C-i to be bound separately from TAB (useful for Evil mode)
 (defun my/distinguish-gui-tab ()
@@ -18,12 +24,35 @@
 (add-hook 'tty-setup-hook 'my/distinguish-gui-tab)
 (my/distinguish-gui-tab)
 
-;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
+;; Reset GC after startup (gcmh will take over, but let's be safe)
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (message "Emacs loaded in %s with %d garbage collections."
+                     (format "%.2f seconds"
+                             (float-time
+                              (time-subtract after-init-time before-init-time)))
+                     gcs-done)))
 
-(require 'use-package)
-(setq use-package-always-ensure t)
+;;; 1.0.5 ESSENTIALS
+(use-package no-littering)
+(recentf-mode 1)
+(global-auto-revert-mode 1)
+(delete-selection-mode 1)
+(electric-pair-mode 1)
+
+(defun my/lisp-syntax-setup ()
+  "Common syntax settings for Lisp-like modes."
+  (modify-syntax-entry ?- "w")
+  (modify-syntax-entry ?? "w")
+  (modify-syntax-entry ?! "w")
+  (modify-syntax-entry ?> "w")
+  (modify-syntax-entry ?< "w")
+  (modify-syntax-entry ?: "w")
+  (modify-syntax-entry ?/ "w")
+  (modify-syntax-entry ?. "w")
+  (modify-syntax-entry ?* "w"))
+
+(add-hook 'emacs-lisp-mode-hook #'my/lisp-syntax-setup)
 
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
@@ -43,6 +72,9 @@
 ;;; 1.1 PERFORMANCE
 (use-package gcmh
   :init
+  (setq gcmh-idle-delay 'auto
+        gcmh-auto-idle-delay-factor 10
+        gcmh-high-cons-threshold (* 128 1024 1024))
   (gcmh-mode 1))
 
 ;;; 2. EVIL MODE (Vim Keybindings)
@@ -324,7 +356,6 @@
   :config
   (setq which-key-idle-delay 0.3) ;; Pop up after 0.3 seconds
   (setq which-key-separator " -> ") ;; Add more spacing between columns
-  (add-hook 'which-key-init-buffer-hook 'ligature-mode)
   (which-key-setup-side-window-bottom))
 
 ;;; 2.1.5 HELPFUL (Better Help Buffers)
@@ -680,8 +711,6 @@
 ;; (set-face-attribute 'default nil :font "JetBrains Mono" :height 140)
 
 ;; Backup files handling - keep directory clean
-(setq backup-directory-alist `(("." . ,(expand-file-name ".tmp/backups/" user-emacs-directory))))
-(setq auto-save-file-name-transforms `((".*" ,(expand-file-name ".tmp/auto-saves/" user-emacs-directory) t)))
 (setq make-backup-files t               ; backup of a file the first time it is saved.
       backup-by-copying t               ; don't clobber symlinks
       version-control t                 ; version numbers for backup files
@@ -691,9 +720,6 @@
       auto-save-default t               ; auto-save every buffer that visits a file
       auto-save-timeout 20              ; number of seconds idle time before auto-save (default: 30)
       auto-save-interval 200)           ; number of keystrokes between auto-saves (default: 300)
-
-;; TRAMP persistency file
-(setq tramp-persistency-file-name (expand-file-name "tramp" (expand-file-name ".tmp/" user-emacs-directory)))
 
 
 ;;; 4. THEME
@@ -734,18 +760,7 @@
   (require 'flycheck-clj-kondo))
 
 ;;; 5.2 EMACS LISP CONFIG
-(defun my-elisp-syntax-hook ()
-  (modify-syntax-entry ?- "w") ; Treat hyphen as part of word
-  (modify-syntax-entry ?? "w") ; Treat question mark as part of word
-  (modify-syntax-entry ?! "w") ; Treat exclamation mark as part of word
-  (modify-syntax-entry ?> "w") ; Treat greater than as part of word
-  (modify-syntax-entry ?< "w") ; Treat less than as part of word
-  (modify-syntax-entry ?: "w") ; Treat colon as part of word
-  (modify-syntax-entry ?/ "w") ; Treat slash as part of word
-  (modify-syntax-entry ?. "w") ; Treat dot as part of word
-  (modify-syntax-entry ?* "w")) ; Treat asterisk as part of word
-
-(add-hook 'emacs-lisp-mode-hook 'my-elisp-syntax-hook)
+(add-hook 'emacs-lisp-mode-hook #'my/lisp-syntax-setup)
 
 ;;; 6. LANGUAGE MODES
 (use-package treesit
@@ -804,17 +819,7 @@
   ;; Tonsky indent style
   (setopt clojure-ts-indent-style 'fixed)
 
-  (defun my-clojure-syntax-hook ()
-    (modify-syntax-entry ?- "w") ; Treat hyphen as part of word
-    (modify-syntax-entry ?? "w") ; Treat question mark as part of word
-    (modify-syntax-entry ?! "w") ; Treat exclamation mark as part of word
-    (modify-syntax-entry ?> "w") ; Treat greater than as part of word
-    (modify-syntax-entry ?< "w") ; Treat less than as part of word
-    (modify-syntax-entry ?: "w") ; Treat colon as part of word (for keywords)
-    (modify-syntax-entry ?/ "w") ; Treat slash as part of word (for qualified symbols/namespaces)
-    (modify-syntax-entry ?. "w") ; Treat dot as part of word (for interop)
-    (modify-syntax-entry ?* "w"))
-  (add-hook 'clojure-ts-mode-hook 'my-clojure-syntax-hook)
+  (add-hook 'clojure-ts-mode-hook #'my/lisp-syntax-setup)
 
   (general-define-key
    :states '(normal visual insert emacs)
