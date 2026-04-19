@@ -385,6 +385,7 @@
   (setq org-directory "~/org/")
   (setq org-startup-indented t)
   (setq org-hide-emphasis-markers t)
+  (setq calendar-week-start-day 1) ;; Monday as first day of week
   :config
   ;; You can add more Org-mode specific configurations here later
   (require 'org-tempo)
@@ -392,14 +393,21 @@
   ;; Agenda setup
   (setq org-agenda-files '("~/org/"))
 
+  (defun my/org-insert-current-date-inactive ()
+    "Insert an inactive Org timestamp for today at point."
+    (interactive)
+    (org-insert-time-stamp (current-time) nil t))
+
   ;; Local leader bindings for Org
   (my/local-leader-def
     :keymaps 'org-mode-map
     "t" '(:ignore t :which-key "toggle")
     "tt" '(org-todo :which-key "todo state")
     "tc" '(org-toggle-checkbox :which-key "checkbox")
-    "d" '(org-deadline :which-key "deadline")
-    "s" '(org-schedule :which-key "schedule")
+    "d" '(:ignore t :which-key "date")
+    "dd" '(org-deadline :which-key "deadline")
+    "ds" '(org-schedule :which-key "schedule")
+    "di" '(my/org-insert-current-date-inactive :which-key "insert inactive")
     "." '(org-time-stamp :which-key "timestamp")))
 
 (use-package org-modern
