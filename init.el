@@ -793,6 +793,8 @@
   :hook (prog-mode . treesit-fold-mode))
 
 (use-package clojure-ts-mode
+  :load-path "/Users/seb/Developer/clojure-ts-mode"
+  :ensure nil
   :after tree-sitter-langs
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
   :config
