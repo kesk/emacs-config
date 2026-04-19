@@ -38,7 +38,16 @@
 (recentf-mode 1)
 (global-auto-revert-mode 1)
 (delete-selection-mode 1)
+
+;; Disable electric-pair-mode in Lisps (conflicts with Parinfer)
 (electric-pair-mode 1)
+(defun my/disable-electric-pair-in-lisps ()
+  (electric-pair-local-mode -1))
+
+(add-hook 'emacs-lisp-mode-hook #'my/disable-electric-pair-in-lisps)
+(add-hook 'clojure-mode-hook #'my/disable-electric-pair-in-lisps)
+(add-hook 'clojure-ts-mode-hook #'my/disable-electric-pair-in-lisps)
+(add-hook 'lisp-data-mode-hook #'my/disable-electric-pair-in-lisps)
 
 (defun my/lisp-syntax-setup ()
   "Common syntax settings for Lisp-like modes."
