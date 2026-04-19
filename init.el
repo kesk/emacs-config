@@ -795,26 +795,18 @@
 
   (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\|Containerfile\\)\\(?:\\..*\\)?\\'" . dockerfile-ts-mode)))
 
-(use-package tree-sitter
-  :init
-  (global-tree-sitter-mode))
-
-(use-package tree-sitter-langs
-  :after tree-sitter)
-
 (use-package treesit-fold
   :vc (:url "https://github.com/emacs-tree-sitter/treesit-fold" :branch "master")
-  :after tree-sitter
+  :after treesit
   :hook (prog-mode . treesit-fold-mode))
 
 (use-package clojure-ts-mode
   :load-path "/Users/seb/Developer/clojure-ts-mode"
   :ensure nil
-  :after tree-sitter-langs
+  :after treesit
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
   :config
-  (setopt tree-sitter-hl-default-modes '(clojure-ts-mode)
-          clojure-ts-toplevel-inside-comment-form t)
+  (setopt clojure-ts-toplevel-inside-comment-form t)
 
   ;; Tonsky indent style
   (setopt clojure-ts-indent-style 'fixed)
