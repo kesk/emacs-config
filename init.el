@@ -968,6 +968,7 @@ If already inside a literal, jump to its end."
 
 (use-package cider
   :after clojure-ts-mode
+  :hook (cider-stacktrace-mode . visual-line-mode)
   :config
   (setq cider-repl-display-help-banner nil ; clean up the REPL
         cider-repl-pop-to-buffer-on-connect nil ; keep focus in source file
