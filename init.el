@@ -34,7 +34,9 @@
                      gcs-done)))
 
 ;;; 1.0.5 ESSENTIALS
-(use-package no-littering)
+(use-package no-littering
+  :config
+  (no-littering-theme-backups))
 (recentf-mode 1)
 (global-auto-revert-mode 1)
 (delete-selection-mode 1)
