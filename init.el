@@ -165,6 +165,7 @@
 (global-set-key (kbd "C-S-u") 'universal-argument)
 
 ;;; 2.0.5 TABSPACES (Workspaces)
+;; Local fork with patches: git@github.com:kesk/tabspaces.git
 (use-package tabspaces
   :load-path "/Users/seb/Developer/tabspaces"
   :hook (after-init . tabspaces-mode)
@@ -817,6 +818,7 @@
   :after treesit
   :hook (prog-mode . treesit-fold-mode))
 
+;; Local fork with patches: git@github.com:kesk/clojure-ts-mode.git
 (use-package clojure-ts-mode
   :load-path "/Users/seb/Developer/clojure-ts-mode"
   :ensure nil
@@ -970,6 +972,16 @@ If already inside a literal, jump to its end."
   :after clojure-ts-mode
   :hook (cider-stacktrace-mode . visual-line-mode)
   :config
+  ;; Fix for Tree-sitter freezes in clojure-ts-mode:
+  ;; CIDER's eldoc calls clojure-find-ns (from clojure-mode), which uses
+  ;; clojure-forward-logical-sexp. When Tree-sitter is active, this can
+  ;; trigger expensive or infinite loops on invalid syntax.
+  (with-eval-after-load 'clojure-mode
+    (advice-add 'clojure-find-ns :around
+                (lambda (orig-fun &rest args)
+                  (if (derived-mode-p 'clojure-ts-mode)
+                      (clojure-ts-find-ns)
+                    (apply orig-fun args)))))
   (setq cider-repl-display-help-banner nil ; clean up the REPL
         cider-repl-pop-to-buffer-on-connect nil ; keep focus in source file
         cider-clojure-cli-global-aliases ":dev:test")
@@ -1033,7 +1045,7 @@ If already inside a literal, jump to its end."
     "ed" '(cider-eval-defun-at-point :which-key "eval defun at point")
     "ep" '(cider-eval-sexp-up-to-point :which-key "eval sexp up to point")
     "eP" '(cider-eval-defun-up-to-point :which-key "eval defun up to point")
-    "ec" '(cider-eval-defun-to-comment :which-key "eval defun to comment")
+    "ec" '(cider-pprint-eval-defun-to-comment :which-key "eval defun to comment")
     "ek" '(cider-kill-last-result :which-key "copy last result")
 
     "h" '(:ignore t :which-key "help")
