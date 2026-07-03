@@ -250,10 +250,16 @@
 
 ;;; 2.0.8 GENERAL (Keybindings & Leader Key)
 (use-package general
-  :after evil
+  :after (evil evil-collection)
   :config
   ;; Explicitly unbind SPC in motion state to allow using it as a leader key
   (define-key evil-motion-state-map " " nil)
+
+  ;; evil-collection rebinds SPC to `image-scroll-up' directly in
+  ;; `image-mode-map', which takes precedence over the motion-state unbind
+  ;; above — undo it so the leader key works in image-mode too.
+  (with-eval-after-load 'image-mode
+    (evil-collection-define-key 'normal 'image-mode-map (kbd "SPC") nil))
 
   (general-create-definer my/leader-def
     :states '(normal visual insert emacs motion)
