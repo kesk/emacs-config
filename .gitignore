@@ -22,6 +22,10 @@ custom.el
 secrets.el
 
 .tmp/
+
+# no-littering runtime/session state
+/var/
+
 ielm-history.eld
 projects
 history
