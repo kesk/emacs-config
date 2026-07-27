@@ -17,7 +17,6 @@ transient/
 tree-sitter/
 
 parinfer-rust/
-projectile-bookmarks.eld
 custom.el
 secrets.el
 
@@ -25,10 +24,3 @@ secrets.el
 
 # no-littering runtime/session state
 /var/
-
-ielm-history.eld
-projects
-history
-places
-tabsession.el
-.emacs-config-tabspaces-session.el
