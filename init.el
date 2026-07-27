@@ -3,8 +3,13 @@
 ;;; 1. PACKAGE MANAGER SETUP
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
                          ("org" . "https://orgmode.org/elpa/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
+;; melpa-stable is only consulted for packages that explicitly `:pin' to it.
+;; MELPA's date-based versions (e.g. 20260415.1809) always sort above stable's
+;; semantic versions (e.g. 2.0.1), so adding the archive does not change which
+;; version any unpinned package resolves to.
 
 (package-initialize)
 (unless package-archive-contents
@@ -977,6 +982,11 @@ If already inside a literal, jump to its end."
   ;;                                      (evil-local-mode 1)))
 
 (use-package cider
+  ;; Pinned to stable releases rather than MELPA master snapshots: CIDER has an
+  ;; active release cadence and the 2.x line landed some breaking renames, so
+  ;; tracking master here buys churn rather than fixes. Unpinning means jumping
+  ;; to whatever `master' is that day (2.1.0-snapshot at time of writing).
+  :pin "melpa-stable"
   :after clojure-ts-mode
   :hook (cider-stacktrace-mode . visual-line-mode)
   :config
