@@ -172,8 +172,9 @@
 (global-set-key (kbd "C-S-u") 'universal-argument)
 
 ;;; 2.0.5 TABSPACES (Workspaces)
-;; Was a local fork carrying a session-restore patch; upstream has since
-;; implemented the same cleanup more robustly, so we track MELPA again.
+;; Was a local fork carrying a session-restore patch; upstream implemented an
+;; equivalent (and more robust) placeholder cleanup, so we track MELPA again.
+;; One gap remains, patched by `my/tabspaces-cleanup-placeholder' below.
 ;; Note upstream development moved to https://codeberg.org/mclear-tools/tabspaces
 (use-package tabspaces
   :hook (after-init . tabspaces-mode)
@@ -189,6 +190,33 @@
   (tabspaces-session-auto-restore t)
   (tabspaces-session-project-session-store nil)
   :config
+  ;; `tabspaces-restore-session' switches to "*tabspaces--placeholder*" before
+  ;; selecting each workspace, so the tab that was current when restore began
+  ;; ends up holding it.  Upstream's cleanup only sweeps tabs named in
+  ;; `tabspaces--session-list', which never includes that pre-existing tab, so
+  ;; the placeholder survives there.  Upstream then kills the placeholder
+  ;; buffer, leaving the tab pointing at a dead buffer -- which `tab-bar'
+  ;; renders as " *Old buffer *tabspaces--placeholder**" (see tab-bar.el,
+  ;; `tab-bar-select-tab').  Sweep every tab rather than just the session's.
+  (defconst my/tabspaces-placeholder-regexp "tabspaces--placeholder"
+    "Match tabs and buffers left behind by a tabspaces session restore.")
+
+  (defun my/tabspaces-cleanup-placeholder (&rest _)
+    "Close tabs and kill buffers left over by a tabspaces session restore."
+    (dolist (name (tabspaces--list-tabspaces))
+      (when (and name
+                 (string-match-p my/tabspaces-placeholder-regexp name)
+                 ;; `tab-bar' refuses to close the last tab; don't try.
+                 (> (length (tab-bar-tabs)) 1))
+        (tab-bar-close-tab-by-name name)))
+    (dolist (buf (buffer-list))
+      (when (string-match-p my/tabspaces-placeholder-regexp (buffer-name buf))
+        (kill-buffer buf))))
+
+  ;; Covers the direct, --safe, and deferred-daemon restore paths, which all
+  ;; funnel through `tabspaces-restore-session'.
+  (advice-add 'tabspaces-restore-session :after #'my/tabspaces-cleanup-placeholder)
+
   ;; Filter Buffers for Consult
   (with-eval-after-load 'consult
     ;; Hide full buffer list (still available with "b" prefix)
