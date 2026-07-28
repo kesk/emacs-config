@@ -172,9 +172,10 @@
 (global-set-key (kbd "C-S-u") 'universal-argument)
 
 ;;; 2.0.5 TABSPACES (Workspaces)
-;; Local fork with patches: git@github.com:kesk/tabspaces.git
+;; Was a local fork carrying a session-restore patch; upstream has since
+;; implemented the same cleanup more robustly, so we track MELPA again.
+;; Note upstream development moved to https://codeberg.org/mclear-tools/tabspaces
 (use-package tabspaces
-  :load-path "/Users/seb/Developer/tabspaces"
   :hook (after-init . tabspaces-mode)
   :commands (tabspaces-switch-or-create-workspace
              tabspaces-open-or-create-project-and-workspace)
@@ -831,10 +832,9 @@
   :after treesit
   :hook (prog-mode . treesit-fold-mode))
 
-;; Local fork with patches: git@github.com:kesk/clojure-ts-mode.git
+;; Was a local fork carrying a namespaced-map indentation fix; upstream merged
+;; the equivalent change, so we track MELPA again.
 (use-package clojure-ts-mode
-  :load-path "/Users/seb/Developer/clojure-ts-mode"
-  :ensure nil
   :after treesit
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
   :config

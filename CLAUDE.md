@@ -55,20 +55,31 @@ Emacs, not by running a test command.
 `"<key>" '(command :which-key "label")` convention and put it under the right
 namespace rather than inventing a new top-level prefix.
 
-**Workspaces.** `tabspaces` (loaded from a local fork at
-`~/Developer/tabspaces`, not MELPA) provides project-scoped workspaces/tabs, with
+**Workspaces.** `tabspaces` provides project-scoped workspaces/tabs, with
 session persistence into `var/tabspaces-session.eld`. `projectile` is the underlying
 project-root provider (`projectile-project-search-path` is `~/Developer/`) and is
 relied on elsewhere (e.g. `consult-project-function`, `my/copy-with-reference`).
 
-**Local sibling-repo packages.** Several packages are pulled via `:load-path` from
-sibling checkouts under `~/Developer/` instead of MELPA:
-`tabspaces` (`~/Developer/tabspaces`), `clojure-ts-mode`
-(`~/Developer/clojure-ts-mode`, a patched fork), and `llm-tool-collection`
-(`~/Developer/llm-tool-collection`). These are local development dependencies — if
-they're missing on a machine, the corresponding `use-package` forms will fail at
-startup. `treesit-fold` instead uses `:vc` to pull a specific GitHub branch directly
-(no local checkout needed).
+**Local sibling-repo packages.** One package is pulled via `:load-path` from a
+sibling checkout under `~/Developer/`: `llm-tool-collection`
+(`~/Developer/llm-tool-collection`), which is not published to MELPA. It is a local
+development dependency — if the checkout is missing on a machine, its `use-package`
+form will fail at startup. `treesit-fold` instead uses `:vc` to pull a specific
+GitHub branch directly (no local checkout needed).
+
+`tabspaces` and `clojure-ts-mode` were previously local patched forks, but upstream
+absorbed the equivalent changes in both cases, so they now come from MELPA like
+everything else. Note that `tabspaces` development has moved from GitHub to
+<https://codeberg.org/mclear-tools/tabspaces>.
+
+**Package pinning.** Nothing is pinned except `cider`, which uses `:pin
+"melpa-stable"` to track tagged releases (2.x) rather than MELPA's master snapshots.
+The `melpa-stable` archive is only consulted for packages that explicitly `:pin` to
+it — MELPA's date-based versions always sort above stable's semantic versions, so
+unpinned packages resolve to MELPA regardless. Note that `package-upgrade-all` can
+delete a package whose name is also built into Emacs (this has happened with
+`transient`) without reinstalling it; check `ls elpa/ | grep transient` after bulk
+upgrades.
 
 **Lisp editing stack.** `electric-pair-mode` is globally on but explicitly disabled
 in Lisp-like modes (`emacs-lisp-mode`, `clojure-ts-mode`, `lisp-data-mode`) because it
