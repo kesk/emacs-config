@@ -21,6 +21,39 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+;;; 1.1 NATIVE COMPILATION
+;; `native-comp-jit-compilation' is off (see early-init.el), so nothing is
+;; compiled during startup.  Native code is produced here instead, explicitly
+;; and out-of-process.
+;;
+;; The subprocess matters: compiling inside this Emacs would install .eln files
+;; while this same Emacs lazily loads them, which is the race the JIT setting
+;; exists to avoid.  A separate batch process shares no such state.
+(defun my/native-compile-packages (&rest _)
+  "Natively compile installed packages in a separate Emacs process.
+Runs asynchronously; progress and errors land in *native-compile*.
+Attached to `package-upgrade-all' so a bulk upgrade refreshes native code
+without having to remember this step."
+  (interactive)
+  (let ((emacs (expand-file-name invocation-name invocation-directory)))
+    (make-process
+     :name "my-native-compile"
+     :buffer "*native-compile*"
+     :command (list emacs "--batch" "--eval"
+                    (format "(progn (native-compile-async %S 'recursively) \
+(while (or (bound-and-true-p comp-files-queue) \
+(and (fboundp 'comp--async-runnings) (> (comp--async-runnings) 0))) \
+(sleep-for 2)) (message \"done\"))"
+                            package-user-dir))
+     :noquery t
+     :sentinel
+     (lambda (_proc event)
+       ;; `start-process' failures are easy to miss, so say something either way.
+       (message "my/native-compile-packages: %s" (string-trim event))))
+    (message "Native-compiling packages in the background (see *native-compile*)")))
+
+(advice-add 'package-upgrade-all :after #'my/native-compile-packages)
+
 ;;; Distinct C-i and TAB
 ;; This allows C-i to be bound separately from TAB (useful for Evil mode)
 (defun my/distinguish-gui-tab ()
@@ -340,6 +373,7 @@
     "fc" '((lambda () (interactive) (find-file user-init-file)) :which-key "open init.el")
     "fd" '((lambda () (interactive) (ediff-current-file)) :which-key "ediff current file")
     "ff" '(find-file :which-key "find file")
+    "fn" '(my/native-compile-packages :which-key "native-compile packages")
     "fR" '((lambda () (interactive) (load-file user-init-file)) :which-key "reload init.el")
     "fr" '(consult-recent-file :which-key "recent files")
 
