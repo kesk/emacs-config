@@ -81,6 +81,25 @@ delete a package whose name is also built into Emacs (this has happened with
 `transient`) without reinstalling it; check `ls elpa/ | grep transient` after bulk
 upgrades.
 
+**Native-comp cache after bulk upgrades.** A large `package-upgrade-all` leaves
+`eln-cache/` holding a mix of freshly compiled `.eln` files and much older ones. If
+Emacs then hard-crashes (SIGSEGV, not an Elisp error) with `load_comp_unit` in the
+backtrace — typically faulting on a small negative address like
+`0xfffffffffffffffd`, i.e. a tagged Lisp pointer off an invalid base rather than a
+stack-guard address — suspect stale native code, not the package that happens to be
+loading. Move the cache aside and let it rebuild: `mv eln-cache eln-cache.stale &&
+mkdir eln-cache`. It is purely derived state, so this is safe; the only cost is
+slower startup while ~600 files recompile. Note `.gitignore` matches `eln-cache/`
+exactly, so a renamed copy shows up as untracked — keep it outside the repo.
+
+**Validating startup properly.** `emacs --batch -Q -l early-init.el -l init.el` runs
+`after-init-hook` *before* `-l` processes the file, so anything hooked there —
+notably `tabspaces-mode` and its session restore — never runs. A clean batch load
+therefore does *not* prove startup works. To exercise that path, call
+`(tabspaces-mode 1)` and `(tabspaces--restore-session-safe)` explicitly, and back up
+`var/tabspaces-session.eld` first: restore-then-exit saves the session back, and a
+batch Emacs has no real frames, so it writes degraded window states.
+
 **Lisp editing stack.** `electric-pair-mode` is globally on but explicitly disabled
 in Lisp-like modes (`emacs-lisp-mode`, `clojure-ts-mode`, `lisp-data-mode`) because it
 conflicts with `parinfer-rust-mode`, which is hooked into both `emacs-lisp-mode` and
