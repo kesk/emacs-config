@@ -81,16 +81,29 @@ delete a package whose name is also built into Emacs (this has happened with
 `transient`) without reinstalling it; check `ls elpa/ | grep transient` after bulk
 upgrades.
 
-**Native-comp cache after bulk upgrades.** A large `package-upgrade-all` leaves
-`eln-cache/` holding a mix of freshly compiled `.eln` files and much older ones. If
-Emacs then hard-crashes (SIGSEGV, not an Elisp error) with `load_comp_unit` in the
-backtrace — typically faulting on a small negative address like
-`0xfffffffffffffffd`, i.e. a tagged Lisp pointer off an invalid base rather than a
-stack-guard address — suspect stale native code, not the package that happens to be
-loading. Move the cache aside and let it rebuild: `mv eln-cache eln-cache.stale &&
-mkdir eln-cache`. It is purely derived state, so this is safe; the only cost is
-slower startup while ~600 files recompile. Note `.gitignore` matches `eln-cache/`
-exactly, so a renamed copy shows up as untracked — keep it outside the repo.
+**Native-comp JIT is disabled — do not re-enable casually.** `early-init.el` sets
+`native-comp-jit-compilation` to nil. With JIT on (the Emacs 30 default), every file
+lacking an up-to-date `.eln` queues an async compile at startup, and those
+subprocesses install `.eln` files while the main process is loading `.eln` files. A
+file swapped underneath a load produces a hard crash (SIGSEGV, not an Elisp error)
+inside `load_comp_unit` — either in `read0` parsing the embedded data blob, or
+faulting on a junk address such as `0x1b` or `0xfffffffffffffffd`. Emacs dies about
+two seconds into startup, and the backtrace names whichever library was unlucky
+enough to be loading, never the real cause.
+
+The window is widest right after a bulk `package-upgrade-all`, when hundreds of files
+need recompiling. Clearing `eln-cache/` does **not** fix this and makes it briefly
+worse — an empty cache means *everything* recompiles at the next startup. That was
+tried first and the crash recurred on a freshly built `.eln`.
+
+To (re)generate native code, do it offline where nothing is loading concurrently:
+
+    emacs --batch --eval '(native-compile-async "~/.config/emacs/elpa" (quote recursively))'
+
+Batch Emacs exits before the async queue drains, so wrap that in a loop that polls
+`comp-files-queue` if you need it to block. If you ever do clear the cache, note that
+`.gitignore` matches `eln-cache/` exactly, so a renamed copy shows as untracked —
+keep it outside the repo.
 
 **Validating startup properly.** `emacs --batch -Q -l early-init.el -l init.el` runs
 `after-init-hook` *before* `-l` processes the file, so anything hooked there —

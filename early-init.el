@@ -22,5 +22,20 @@
   (add-to-list 'exec-path "/opt/homebrew/bin")
   (setq native-comp-driver-options '("-B/opt/homebrew/bin/" "-Wl,-w")))
 
+;; Do not natively compile on demand.  With JIT enabled, every file lacking an
+;; up-to-date .eln queues an async compile at startup, and those subprocesses
+;; install .eln files while the main process is busy loading .eln files.  A file
+;; swapped underneath a load yields a half-read data blob and a hard crash
+;; (SIGSEGV inside load_comp_unit, usually in `read0' parsing the blob).  That
+;; window is widest right after a bulk `package-upgrade-all', which is exactly
+;; when it bit -- twice.
+;;
+;; Existing .eln files are still used, and anything without one falls back to
+;; byte-code.  To (re)generate native code, compile offline instead, with no
+;; Emacs concurrently loading the output:
+;;
+;;   emacs --batch --eval '(native-compile-async "~/.config/emacs/elpa" (quote recursively))'
+(setq native-comp-jit-compilation nil)
+
 (provide 'early-init)
 ;;; early-init.el ends here
