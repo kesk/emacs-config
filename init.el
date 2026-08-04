@@ -1070,6 +1070,17 @@ If already inside a literal, jump to its end."
   (with-eval-after-load 'evil
     (add-hook 'cider-mode-hook (lambda () (setq-local evil-lookup-func #'cider-doc))))
 
+  ;; `cider-macrostep-mode' (CIDER 2.0) drives inline macro stepping from
+  ;; single-key bindings -- e/RET expand, a expand-all, c collapse, n/p jump
+  ;; between expandable operators, q quit. They live in a plain minor-mode
+  ;; keymap, and Evil's state maps go through `emulation-mode-map-alists',
+  ;; which outranks `minor-mode-map-alist' -- so in normal state `e' would run
+  ;; `evil-forward-word-end' instead. evil-collection has no cider-macrostep
+  ;; support as of 2.0.1, hence the manual override.
+  (with-eval-after-load 'cider-macrostep
+    (evil-make-overriding-map cider-macrostep-mode-map 'normal)
+    (add-hook 'cider-macrostep-mode-hook #'evil-normalize-keymaps))
+
   ;; Configure REPL window to be at the bottom with height 15
   (add-to-list 'display-buffer-alist
                '("\\*cider-repl"
