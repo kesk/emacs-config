@@ -15,7 +15,8 @@ Emacs, not by running a test command.
 - Open the config from inside Emacs: `SPC f c`.
 - From the shell, a clean-start sanity check: `emacs -Q -l early-init.el -l init.el --eval '(message "ok")'`
   (note: this will hit the network for any package not yet installed, since
-  `package.el` auto-refreshes archive contents).
+  `package.el` auto-refreshes archive contents — prefix with `EMACS_OFFLINE=1` to
+  suppress that, see "Offline / air-gapped use" below).
 - Startup time and GC count are logged to the `*Messages*` buffer on every boot
   (see the `emacs-startup-hook` in `init.el`) — useful for checking a change didn't
   regress startup performance.
@@ -41,6 +42,8 @@ Emacs, not by running a test command.
 - `var/` — runtime/session state managed by `no-littering` (recentf, savehist,
   save-place, projectile cache, tabspaces session, etc.). Gitignored, not meant to be
   edited by hand.
+- `scripts/` — standalone batch helpers, run via `emacs --batch -l`, not loaded by
+  `init.el`. Currently just `check-packages.el` (see "Offline / air-gapped use").
 - `snippets/`, `tree-sitter/`, `parinfer-rust/`, `elpa/`, `eln-cache/`, `transient/` —
   generated/downloaded artifacts (yasnippet snippets, compiled tree-sitter grammars,
   ELPA packages, native-comp cache). Not hand-maintained.
@@ -112,6 +115,31 @@ therefore does *not* prove startup works. To exercise that path, call
 `(tabspaces-mode 1)` and `(tabspaces--restore-session-safe)` explicitly, and back up
 `var/tabspaces-session.eld` first: restore-then-exit saves the session back, and a
 batch Emacs has no real frames, so it writes degraded window states.
+
+**Offline / air-gapped use.** Setting the `EMACS_OFFLINE` environment variable (to
+anything) sets `my/offline` in `init.el`, which skips `package-refresh-contents` and
+sets `use-package-always-ensure` to nil. Without it, an unreachable network costs one
+DNS timeout per package at startup. With `:ensure` disabled, a genuinely absent
+package logs `Error (use-package): Cannot load X` and startup continues; deferred
+forms (`:hook`, `:commands`, `:bind`) don't complain until first use.
+
+To see what a given machine can supply:
+
+    emacs --batch -l scripts/check-packages.el init.el
+
+It parses the `use-package` forms out of `init.el` and reports each package as
+installed / built-in / available-from-an-archive / MISSING, without installing
+anything. "Available" is judged from cached `elpa/archives` metadata, so refresh once
+against a local mirror before trusting a MISSING verdict.
+
+Three things no package archive can supply, and which must be copied in by hand:
+`treesit-fold` (a `:vc` git checkout), `llm-tool-collection` (the `:load-path` sibling
+repo), and the compiled grammars in `tree-sitter/` — those are platform-specific
+`.dylib`/`.so` files, and `treesit-language-source-alist` is inert offline since
+`treesit-install-language-grammar` git-clones and invokes a C compiler. Also note
+`cider`'s `:pin "melpa-stable"` resolves by *archive name*: a local mirror that
+exposes its packages under any other name silently fails to supply cider, which is
+what `check-packages.el` flags with `!!`.
 
 **Lisp editing stack.** `electric-pair-mode` is globally on but explicitly disabled
 in Lisp-like modes (`emacs-lisp-mode`, `clojure-ts-mode`, `lisp-data-mode`) because it

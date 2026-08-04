@@ -11,15 +11,29 @@
 ;; semantic versions (e.g. 2.0.1), so adding the archive does not change which
 ;; version any unpinned package resolves to.
 
+;;; 1.0.5 OFFLINE / AIR-GAPPED OPERATION
+;; Set EMACS_OFFLINE (to anything) to promise this Emacs never reaches the
+;; network for packages.  Two things change: the archive refresh below is
+;; skipped, and `:ensure' stops trying to install, so every `use-package' form
+;; loads whatever is already on disk instead.  Missing packages are then logged
+;; as "Error (use-package): Cannot load X" and startup continues; deferred forms
+;; (`:hook', `:commands', `:bind') fail later at first use rather than at boot.
+;;
+;; Without this, an unreachable network means one DNS timeout per package, and
+;; `package-refresh-contents' below blocks startup on all four archives.
+(defvar my/offline (and (getenv "EMACS_OFFLINE") t)
+  "Non-nil when package operations must not touch the network.
+Set from the EMACS_OFFLINE environment variable at startup.")
+
 (package-initialize)
-(unless package-archive-contents
+(unless (or my/offline package-archive-contents)
   (package-refresh-contents))
 
 ;; Performance tracking
 (setq use-package-compute-statistics t)
 
 (require 'use-package)
-(setq use-package-always-ensure t)
+(setq use-package-always-ensure (not my/offline))
 
 ;;; 1.1 NATIVE COMPILATION
 ;; `native-comp-jit-compilation' is off (see early-init.el), so nothing is
