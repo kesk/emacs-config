@@ -830,6 +830,39 @@ without having to remember this step."
       auto-save-interval 200)           ; number of keystrokes between auto-saves (default: 300)
 
 
+;;; 3.5 GOTO-ADDRESS (Clickable URLs & e-mail addresses)
+(use-package goto-addr
+  :ensure nil
+  :init
+  (defun my/goto-address-repl-setup ()
+    "Enable `goto-address-mode' in a way that also catches REPL output.
+
+`cider-repl--emit-output' puts `(syntax-table (1))' -- punctuation
+syntax -- on every character of program output, so unbalanced parens
+in output don't break sexp navigation (CIDER issue #3102), and
+`cider-repl-mode' sets `parse-sexp-lookup-properties' so it takes
+effect.  A side effect is that no output character is a word
+constituent, and `goto-address-url-regexp' begins with `\\<', which
+can only match before one.  URLs in output therefore never match,
+while URLs on the input line -- ordinary buffer text -- do.
+
+Dropping the anchor buffer-locally fixes it.  `goto-address-mail-regexp'
+has no such anchor and already works.  The cost is that a URL glued to
+a preceding word now matches too, which is harmless in output."
+    (interactive)
+    (setq-local goto-address-url-regexp
+                (if (string-prefix-p "\\<" goto-address-url-regexp)
+                    (substring goto-address-url-regexp 2)
+                  goto-address-url-regexp))
+    (goto-address-mode 1))
+  ;; `cider-repl-mode' derives from `fundamental-mode', so neither hook below
+  ;; reaches it.  It gets the unrestricted variant on purpose: the buffer is
+  ;; mostly program output, not code, so URLs there are rarely in a comment.
+  :hook ((prog-mode . goto-address-prog-mode)
+         (text-mode . goto-address-mode)
+         (cider-repl-mode . my/goto-address-repl-setup)))
+
+
 ;;; 4. THEME
 (use-package doom-themes
   :config
