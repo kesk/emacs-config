@@ -993,6 +993,10 @@ works after unpacking them into a running session."
 (use-package clojure-ts-mode
   :after treesit
   :mode ("\\.clj\\'" "\\.cljs\\'" "\\.cljc\\'" "\\.edn\\'")
+  ;; `set-auto-mode' checks the shebang before the file name, and clojure-mode
+  ;; (a cider dependency) autoloads these interpreters onto itself, so a
+  ;; babashka script would otherwise open in clojure-mode despite `:mode'.
+  :interpreter ("bb" "clj" "clojure" ("nbb" . clojure-ts-clojurescript-mode))
   :config
   (setopt clojure-ts-toplevel-inside-comment-form t)
 
