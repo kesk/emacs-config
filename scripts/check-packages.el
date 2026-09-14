@@ -39,8 +39,16 @@
 ;;
 ;; Packages that no archive can ever supply -- the `:vc' checkout, the
 ;; `:load-path' sibling repo -- are listed separately at the end; those must be
-;; copied in by hand.  So must the compiled tree-sitter grammars in
-;; tree-sitter/, which are not packages at all.
+;; copied in by hand.
+;;
+;;; Tree-sitter grammars:
+;;
+;; Grammars are shared libraries rather than packages, so package.el knows
+;; nothing about them and a clean package report says nothing about grammar
+;; availability.  The second half of the report covers them separately: whether
+;; each library actually loads, whether its source entry is a local directory
+;; (installable offline) or a remote URL (needs the network), and whether a C
+;; compiler is present to build from source.
 
 ;;; Code:
 
@@ -118,9 +126,81 @@ archives entirely."
     (dolist (m manual)
       (princ (format "  %-24s %s\n" (car m) (cdr m))))))
 
+
+(defun my/check-packages--grammar-alist (init-file)
+  "Read the `treesit-language-source-alist' literal out of INIT-FILE.
+Returns nil if the form is absent or unreadable."
+  (with-temp-buffer
+    (insert-file-contents init-file)
+    (goto-char (point-min))
+    ;; Anchor on the `setq', not a bare mention: the name also appears in the
+    ;; `my/treesit-install-all-grammars' docstring, where it is followed by a
+    ;; quote character and would otherwise match first.
+    (when (re-search-forward "(setq[ \t\n]+treesit-language-source-alist[ \t\n]*'" nil t)
+      (ignore-errors (read (current-buffer))))))
+
+(defun my/check-packages-grammar-report (init-file)
+  "Print a tree-sitter grammar report for INIT-FILE.
+Grammars are shared libraries, not packages, so `package.el' knows nothing
+about them and the package report above cannot speak for them."
+  (princ "\nTREE-SITTER GRAMMARS\n")
+  (if (not (require 'treesit nil t))
+      (princ "  this Emacs was built without tree-sitter support\n")
+    (let* ((alist (my/check-packages--grammar-alist init-file))
+           (cfg-dir (file-name-directory (expand-file-name init-file)))
+           (grammar-dir (expand-file-name "tree-sitter" cfg-dir))
+           (init-text (with-temp-buffer
+                        (insert-file-contents init-file)
+                        (buffer-string)))
+           (cc (seq-find #'executable-find '("cc" "gcc" "c99")))
+           (c++ (seq-find #'executable-find '("c++" "g++")))
+           (missing '()) (remote 0))
+      ;; Look where this config keeps its grammars, not just where a default
+      ;; `user-emacs-directory' would put them.
+      (add-to-list 'treesit-extra-load-path (file-name-as-directory grammar-dir))
+      (princ (format "  searching   : %s\n" grammar-dir))
+      (princ (format "  C compiler  : %s\n"
+                     (or cc "NONE -- cannot build grammars from source")))
+      (princ (format "  C++ compiler: %s\n"
+                     (or c++ "none -- needed only for scanner.cc grammars")))
+      (if (null alist)
+          (princ "\n  no treesit-language-source-alist found in this init.el\n")
+        (princ (format "\n  %-16s %-10s %s\n" "LANGUAGE" "LIBRARY" "SOURCE"))
+        (dolist (entry alist)
+          (let* ((lang (car entry))
+                 (url (cadr entry))
+                 (used (string-match-p (format "\\_<%s-ts-mode\\_>" lang) init-text))
+                 (have (treesit-language-available-p lang))
+                 (local (and (stringp url)
+                             (file-accessible-directory-p (expand-file-name url)))))
+            (unless have (push (cons lang used) missing))
+            (unless (or local (not (stringp url))) (cl-incf remote))
+            (princ (format "  %-16s %-10s %s\n"
+                           (format "%s%s" lang (if used " *" ""))
+                           (if have "loadable" "MISSING")
+                           (cond (local "local dir (offline OK)")
+                                 ((stringp url) "remote URL (NEEDS NETWORK)")
+                                 (t "unknown"))))))
+        (princ "\n  * = actually wired to a major mode in this init.el;\n")
+        (princ "      unmarked languages are aspirational and cost nothing if absent.\n")
+        (let ((needed (seq-filter #'cdr missing)))
+          (princ (format "\n  %d/%d grammars loadable; %d missing (%d of them wired to a mode)\n"
+                         (- (length alist) (length missing)) (length alist)
+                         (length missing) (length needed)))
+          (when needed
+            (princ (format "  wired but MISSING: %s\n"
+                           (mapconcat (lambda (m) (symbol-name (car m))) needed " "))))
+          (when (> remote 0)
+            (princ (format "\n  %d source entries are remote URLs, so\n" remote))
+            (princ "  `treesit-install-language-grammar' will try to git-clone them and will\n")
+            (princ "  fail with no network.  Point those entries at local source directories\n")
+            (princ "  instead: Emacs 30 skips the clone when the URL is an existing directory\n")
+            (princ "  and compiles straight from its src/ with cc.\n")))))))
+
 (package-initialize)
-(my/check-packages-report
- (or (car command-line-args-left)
-     (expand-file-name "init.el" user-emacs-directory)))
+(let ((init (or (car command-line-args-left)
+                (expand-file-name "init.el" user-emacs-directory))))
+  (my/check-packages-report init)
+  (my/check-packages-grammar-report init))
 
 ;;; check-packages.el ends here

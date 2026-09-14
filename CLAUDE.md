@@ -44,6 +44,8 @@ Emacs, not by running a test command.
   edited by hand.
 - `scripts/` — standalone batch helpers, run via `emacs --batch -l`, not loaded by
   `init.el`. Currently just `check-packages.el` (see "Offline / air-gapped use").
+- `OFFLINE.md` — human-facing runbook for setting the config up on an air-gapped
+  machine, including how to build tree-sitter grammars without network access.
 - `snippets/`, `tree-sitter/`, `parinfer-rust/`, `elpa/`, `eln-cache/`, `transient/` —
   generated/downloaded artifacts (yasnippet snippets, compiled tree-sitter grammars,
   ELPA packages, native-comp cache). Not hand-maintained.
@@ -128,18 +130,22 @@ To see what a given machine can supply:
     emacs --batch -l scripts/check-packages.el init.el
 
 It parses the `use-package` forms out of `init.el` and reports each package as
-installed / built-in / available-from-an-archive / MISSING, without installing
-anything. "Available" is judged from cached `elpa/archives` metadata, so refresh once
+installed / built-in / available-from-an-archive / MISSING, then reports tree-sitter
+grammars separately (loadable or not, local or remote source, compiler present) —
+grammars are shared libraries, not packages, so the package half says nothing about
+them. "Available" is judged from cached `elpa/archives` metadata, so refresh once
 against a local mirror before trusting a MISSING verdict.
 
 Three things no package archive can supply, and which must be copied in by hand:
 `treesit-fold` (a `:vc` git checkout), `llm-tool-collection` (the `:load-path` sibling
-repo), and the compiled grammars in `tree-sitter/` — those are platform-specific
-`.dylib`/`.so` files, and `treesit-language-source-alist` is inert offline since
-`treesit-install-language-grammar` git-clones and invokes a C compiler. Also note
-`cider`'s `:pin "melpa-stable"` resolves by *archive name*: a local mirror that
-exposes its packages under any other name silently fails to supply cider, which is
-what `check-packages.el` flags with `!!`.
+repo), and the compiled grammars in `tree-sitter/` — platform-specific `.dylib`/`.so`
+files. Grammars *can* be built offline: `treesit-install-language-grammar` skips its
+`git clone` when the alist's URL field is an existing local directory and compiles
+from `<dir>/src/` with `cc`, so only the grammar source (a pre-generated `parser.c`)
+needs carrying over. Only `clojure` and `dockerfile` are actually wired to a mode.
+The full procedure is in `OFFLINE.md`. Also note `cider`'s `:pin "melpa-stable"`
+resolves by *archive name*: a local mirror that exposes its packages under any other
+name silently fails to supply cider, which is what `check-packages.el` flags with `!!`.
 
 **Lisp editing stack.** `electric-pair-mode` is globally on but explicitly disabled
 in Lisp-like modes (`emacs-lisp-mode`, `clojure-ts-mode`, `lisp-data-mode`) because it
