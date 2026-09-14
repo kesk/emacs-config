@@ -46,9 +46,10 @@ Emacs, not by running a test command.
   `init.el`. Currently just `check-packages.el` (see "Offline / air-gapped use").
 - `OFFLINE.md` — human-facing runbook for setting the config up on an air-gapped
   machine, including how to build tree-sitter grammars without network access.
-- `snippets/`, `tree-sitter/`, `parinfer-rust/`, `elpa/`, `eln-cache/`, `transient/` —
-  generated/downloaded artifacts (yasnippet snippets, compiled tree-sitter grammars,
-  ELPA packages, native-comp cache). Not hand-maintained.
+- `snippets/`, `tree-sitter/`, `ts-src/`, `parinfer-rust/`, `elpa/`, `eln-cache/`,
+  `transient/` — generated/downloaded artifacts (yasnippet snippets, compiled
+  tree-sitter grammars and the grammar sources they're built from, ELPA packages,
+  native-comp cache). Not hand-maintained.
 
 ## Architecture notes specific to this config
 

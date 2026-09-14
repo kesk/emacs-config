@@ -15,6 +15,7 @@ eln-cache/
 transient/
 .DS_Store
 tree-sitter/
+ts-src/
 
 parinfer-rust/
 custom.el
