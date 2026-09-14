@@ -850,6 +850,9 @@ Dropping the anchor buffer-locally fixes it.  `goto-address-mail-regexp'
 has no such anchor and already works.  The cost is that a URL glued to
 a preceding word now matches too, which is harmless in output."
     (interactive)
+    ;; `goto-address-mode' is autoloaded but the regexp variable is not, so a
+    ;; REPL buffer created before any prog/text buffer would read a void var.
+    (require 'goto-addr)
     (setq-local goto-address-url-regexp
                 (if (string-prefix-p "\\<" goto-address-url-regexp)
                     (substring goto-address-url-regexp 2)
@@ -1127,6 +1130,24 @@ If already inside a literal, jump to its end."
   (with-eval-after-load 'cider-macrostep
     (evil-make-overriding-map cider-macrostep-mode-map 'normal)
     (add-hook 'cider-macrostep-mode-hook #'evil-normalize-keymaps))
+
+  ;; Babashka >= 1.13 embeds real nREPL plus a *subset* of cider-nrepl
+  ;; (inspector, info, complete, eldoc, test, stacktrace...) and now reports
+  ;; a `clojure' entry ("1.12.6-SCI") in `describe'.  That makes
+  ;; `cider-runtime-clojure-p' true, so `cider--connected-hook' takes the JVM
+  ;; init path, which unconditionally sends `cider/init-debugger' -- an op bb
+  ;; does not provide.  CIDER 2.0 turns any unsupported namespaced op into a
+  ;; `user-error' at send time, which aborts the rest of the connect callback
+  ;; (capabilities, `cider-repl-init-function', enabling `cider-mode' in open
+  ;; buffers).  Guard the debugger init the same way CIDER already guards
+  ;; `cider/out-subscribe'.
+  (define-advice cider--debug-init-connection
+      (:around (orig-fn &rest args) my/skip-without-debugger-op)
+    "Only initialize the debugger on connections that actually provide it."
+    (if (cider-nrepl-op-supported-p "cider/init-debugger")
+        (apply orig-fn args)
+      (message "CIDER: no debugger middleware on this REPL (%s); skipping init"
+               (cider-runtime))))
 
   ;; Configure REPL window to be at the bottom with height 15
   (add-to-list 'display-buffer-alist
