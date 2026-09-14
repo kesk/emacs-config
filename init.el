@@ -910,9 +910,52 @@ a preceding word now matches too, which is harmless in output."
 (use-package treesit
   :ensure nil
   :preface
+  ;; Offline grammar sources.  `treesit-install-language-grammar' skips its
+  ;; git clone when an entry's URL is an existing directory and compiles from
+  ;; <dir>/src with cc, so grammar checkouts dropped under this directory make
+  ;; the same alist install without network.  See OFFLINE.md.
+  (defvar my/treesit-source-dir
+    (or (getenv "EMACS_TS_SRC") (locate-user-emacs-file "ts-src"))
+    "Directory holding local tree-sitter grammar source checkouts.
+Each checkout is looked up by its upstream repository name (the last path
+component of the entry's URL), so `tsx' and `typescript' share one
+`tree-sitter-typescript' directory as they do upstream.")
+
+  (defun my/treesit-use-local-sources ()
+    "Repoint `treesit-language-source-alist' at checkouts in `my/treesit-source-dir'.
+Only entries with a matching directory are rewritten; the rest keep their
+URL, so this is a no-op on a machine without local sources.  Idempotent."
+    (when (file-directory-p my/treesit-source-dir)
+      (setq treesit-language-source-alist
+            (mapcar
+             (lambda (entry)
+               ;; Entries are variable length -- (LANG URL) up to
+               ;; (LANG URL REVISION SOURCE-DIR CC C++) -- hence `nth'.
+               (let* ((lang (nth 0 entry))
+                      (url (nth 1 entry))
+                      (source-dir (nth 3 entry))
+                      (rest (nthcdr 4 entry))
+                      (dir (and (stringp url)
+                                (seq-find
+                                 #'file-directory-p
+                                 (list (expand-file-name (file-name-nondirectory url)
+                                                         my/treesit-source-dir)
+                                       (expand-file-name (format "tree-sitter-%s" lang)
+                                                         my/treesit-source-dir))))))
+                 (if (not dir)
+                     entry
+                   ;; REVISION is dropped on purpose: with a local directory,
+                   ;; a non-nil revision makes treesit run `git checkout' in
+                   ;; it, which fails on a plain copied-in source tree.
+                   (append (list lang dir nil source-dir) rest))))
+             treesit-language-source-alist))))
+
   (defun my/treesit-install-all-grammars ()
-    "Install all tree-sitter grammars in `treesit-language-source-alist'."
+    "Install all tree-sitter grammars in `treesit-language-source-alist'.
+Local sources under `my/treesit-source-dir' are picked up first, so this
+works after unpacking them into a running session."
     (interactive)
+    (my/treesit-use-local-sources)
     (mapc #'treesit-install-language-grammar (mapcar #'car treesit-language-source-alist)))
 
   :config
@@ -936,6 +979,7 @@ a preceding word now matches too, which is harmless in output."
           (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
           (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
           (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+  (my/treesit-use-local-sources)
 
   (add-to-list 'auto-mode-alist '("\\(?:Dockerfile\\|Containerfile\\)\\(?:\\..*\\)?\\'" . dockerfile-ts-mode)))
 

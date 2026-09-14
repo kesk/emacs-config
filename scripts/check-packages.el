@@ -46,9 +46,11 @@
 ;; Grammars are shared libraries rather than packages, so package.el knows
 ;; nothing about them and a clean package report says nothing about grammar
 ;; availability.  The second half of the report covers them separately: whether
-;; each library actually loads, whether its source entry is a local directory
-;; (installable offline) or a remote URL (needs the network), and whether a C
-;; compiler is present to build from source.
+;; each library actually loads, whether a local source checkout exists for it
+;; (installable offline via init.el's `my/treesit-use-local-sources' fallback)
+;; or only a remote URL (needs the network), and whether a C compiler is present
+;; to build from source.  The source directory is `EMACS_TS_SRC' or ts-src/
+;; next to the init file, matching init.el.
 
 ;;; Code:
 
@@ -149,6 +151,11 @@ about them and the package report above cannot speak for them."
     (let* ((alist (my/check-packages--grammar-alist init-file))
            (cfg-dir (file-name-directory (expand-file-name init-file)))
            (grammar-dir (expand-file-name "tree-sitter" cfg-dir))
+           ;; Mirror `my/treesit-source-dir' in init.el: the fallback there
+           ;; rewrites URL entries to these checkouts at startup, which the
+           ;; literal alist read from the file cannot show.
+           (source-dir (or (getenv "EMACS_TS_SRC")
+                           (expand-file-name "ts-src" cfg-dir)))
            (init-text (with-temp-buffer
                         (insert-file-contents init-file)
                         (buffer-string)))
@@ -158,7 +165,9 @@ about them and the package report above cannot speak for them."
       ;; Look where this config keeps its grammars, not just where a default
       ;; `user-emacs-directory' would put them.
       (add-to-list 'treesit-extra-load-path (file-name-as-directory grammar-dir))
-      (princ (format "  searching   : %s\n" grammar-dir))
+      (princ (format "  libraries in: %s\n" grammar-dir))
+      (princ (format "  sources in  : %s%s\n" source-dir
+                     (if (file-directory-p source-dir) "" "  (absent)")))
       (princ (format "  C compiler  : %s\n"
                      (or cc "NONE -- cannot build grammars from source")))
       (princ (format "  C++ compiler: %s\n"
@@ -172,13 +181,18 @@ about them and the package report above cannot speak for them."
                  (used (string-match-p (format "\\_<%s-ts-mode\\_>" lang) init-text))
                  (have (treesit-language-available-p lang))
                  (local (and (stringp url)
-                             (file-accessible-directory-p (expand-file-name url)))))
+                             (or (file-accessible-directory-p (expand-file-name url))
+                                 (seq-find #'file-directory-p
+                                           (list (expand-file-name
+                                                  (file-name-nondirectory url) source-dir)
+                                                 (expand-file-name
+                                                  (format "tree-sitter-%s" lang) source-dir)))))))
             (unless have (push (cons lang used) missing))
             (unless (or local (not (stringp url))) (cl-incf remote))
             (princ (format "  %-16s %-10s %s\n"
                            (format "%s%s" lang (if used " *" ""))
                            (if have "loadable" "MISSING")
-                           (cond (local "local dir (offline OK)")
+                           (cond (local "local source (offline OK)")
                                  ((stringp url) "remote URL (NEEDS NETWORK)")
                                  (t "unknown"))))))
         (princ "\n  * = actually wired to a major mode in this init.el;\n")
@@ -191,11 +205,10 @@ about them and the package report above cannot speak for them."
             (princ (format "  wired but MISSING: %s\n"
                            (mapconcat (lambda (m) (symbol-name (car m))) needed " "))))
           (when (> remote 0)
-            (princ (format "\n  %d source entries are remote URLs, so\n" remote))
-            (princ "  `treesit-install-language-grammar' will try to git-clone them and will\n")
-            (princ "  fail with no network.  Point those entries at local source directories\n")
-            (princ "  instead: Emacs 30 skips the clone when the URL is an existing directory\n")
-            (princ "  and compiles straight from its src/ with cc.\n")))))))
+            (princ (format "\n  %d source entries have no local checkout, so installing them\n" remote))
+            (princ "  needs the network.  To build offline, unpack the grammar source as\n")
+            (princ (format "  %s/<upstream-repo-name>/src/parser.c\n" source-dir))
+            (princ "  and init.el's fallback picks it up (see OFFLINE.md).\n")))))))
 
 (package-initialize)
 (let ((init (or (car command-line-args-left)

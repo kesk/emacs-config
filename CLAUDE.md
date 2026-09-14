@@ -142,8 +142,11 @@ repo), and the compiled grammars in `tree-sitter/` — platform-specific `.dylib
 files. Grammars *can* be built offline: `treesit-install-language-grammar` skips its
 `git clone` when the alist's URL field is an existing local directory and compiles
 from `<dir>/src/` with `cc`, so only the grammar source (a pre-generated `parser.c`)
-needs carrying over. Only `clojure` and `dockerfile` are actually wired to a mode.
-The full procedure is in `OFFLINE.md`. Also note `cider`'s `:pin "melpa-stable"`
+needs carrying over. `my/treesit-use-local-sources` in the `treesit` block does the
+rewrite automatically for checkouts found under `ts-src/` (or `EMACS_TS_SRC`),
+dropping any pinned revision since `git checkout` fails on a non-repo directory.
+Only `clojure` and `dockerfile` are actually wired to a mode. The full procedure is
+in `OFFLINE.md`. Also note `cider`'s `:pin "melpa-stable"`
 resolves by *archive name*: a local mirror that exposes its packages under any other
 name silently fails to supply cider, which is what `check-packages.el` flags with `!!`.
 

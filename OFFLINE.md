@@ -112,21 +112,27 @@ optional. Removing `.git` is not optional — see gotchas.
 
 ### Installing on the air-gapped box
 
-Unpack so you have `~/.config/emacs/ts-src/tree-sitter-clojure/` etc., then
-evaluate once in Emacs — no config change needed:
+Unpack so you have `~/.config/emacs/ts-src/tree-sitter-clojure/` etc. — the
+directory names must match the upstream repository names — then in Emacs:
 
-```elisp
-(setq treesit-language-source-alist
-      '((clojure    "~/.config/emacs/ts-src/tree-sitter-clojure")
-        (dockerfile "~/.config/emacs/ts-src/tree-sitter-dockerfile")))
-(treesit-install-language-grammar 'clojure)
-(treesit-install-language-grammar 'dockerfile)
+```
+M-x my/treesit-install-all-grammars
 ```
 
-Emacs 30 treats a URL that resolves to an existing directory as a local
-source: it skips `git clone` entirely and compiles from `<dir>/src/` with
-`cc`. The libraries land in `~/.config/emacs/tree-sitter/`. The alist is
-only consulted while installing — once the `.so` exists, this is permanent.
+`init.el` looks for `ts-src/` at startup (or wherever `EMACS_TS_SRC`
+points) and rewrites `treesit-language-source-alist` so every entry with a
+checkout there uses the local directory instead of its GitHub URL
+(`my/treesit-use-local-sources`). Emacs 30 skips `git clone` for a URL that
+is an existing directory and compiles from `<dir>/src/` with `cc`. Entries
+without a checkout keep their URL, so the same `init.el` still clones on a
+networked machine. The install command re-runs the lookup first, so this
+also works if you unpack `ts-src/` into an already-running session.
+
+Expect warnings for the 17 languages you didn't bring — each one still
+tries to clone and fails. Failures are warnings, not errors, so the loop
+runs to completion and the two that matter get installed. The libraries
+land in `~/.config/emacs/tree-sitter/`. The alist is only consulted while
+installing — once the `.so` exists, this is permanent.
 
 Then confirm:
 
@@ -134,9 +140,21 @@ Then confirm:
 emacs --batch -l scripts/check-packages.el init.el
 ```
 
-The `clojure *` and `dockerfile *` rows should read `loadable`. Trust an
-actual `.clj` buffer over the report, though: a library built against a
-newer glibc than the target's fails at parser creation, not at load.
+The `clojure *` and `dockerfile *` rows should read `loadable`, and their
+source column `local source (offline OK)`. Trust an actual `.clj` buffer
+over the report, though: a library built against a newer glibc than the
+target's fails at parser creation, not at load.
+
+If you'd rather not rely on the fallback — say the sources live somewhere
+odd — the equivalent by hand, evaluated once:
+
+```elisp
+(setq treesit-language-source-alist
+      '((clojure    "/path/to/tree-sitter-clojure")
+        (dockerfile "/path/to/tree-sitter-dockerfile")))
+(treesit-install-language-grammar 'clojure)
+(treesit-install-language-grammar 'dockerfile)
+```
 
 ### Without Emacs at all
 
@@ -154,9 +172,9 @@ Add `scanner.c` after `parser.c` for grammars that have one.
 - **No revision with a local directory.** An entry like
   `(clojure "/local/dir" "master")` makes treesit run
   `git -C /local/dir checkout master`, which fails on a plain copied-in
-  source tree. Leave the revision out (or `nil`). The `javascript`, `tsx`
-  and `typescript` entries in `init.el` carry `"master"` — drop it if you
-  ever build those locally.
+  source tree. The fallback drops the revision for exactly this reason; if
+  you write entries by hand, leave it out (or `nil`). The `javascript`,
+  `tsx` and `typescript` entries in `init.el` carry `"master"`.
 - **`scanner.cc` needs `c++`.** A C-only toolchain builds grammars with a
   `scanner.c` or none; a C++ scanner needs `c++`/`g++` too. Neither of the
   two required grammars has one.
