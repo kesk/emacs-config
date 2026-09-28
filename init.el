@@ -1110,6 +1110,7 @@ If already inside a literal, jump to its end."
   (my/local-leader-def
     :keymaps 'clojure-ts-mode-map
     "j" '(cider-jack-in :which-key "jack in REPL")
+    "u" '(cider-jack-in-universal :which-key "jack in universal")
     "c" '(cider-connect :which-key "connect to REPL")
 
     "R" '(:ignore t :which-key "refactor")
