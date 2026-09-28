@@ -1343,6 +1343,13 @@ If already inside a literal, jump to its end."
     "pp" '(markdown-preview :which-key "preview")
     "pe" '(markdown-export :which-key "export")))
 
+;;; 6.2 SYSTEMD (Unit files)
+;; Stock Emacs has no mode for systemd units.  The package's autoloads
+;; register `systemd-mode' for .service/.timer/.socket/etc. and drop-in
+;; .conf files, so it can stay deferred until one is opened.
+(use-package systemd
+  :defer t)
+
 
 
 ;;; 7. CUSTOM COMMANDS
