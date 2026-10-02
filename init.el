@@ -260,6 +260,21 @@ without having to remember this step."
       (when (string-match-p my/tabspaces-placeholder-regexp (buffer-name buf))
         (kill-buffer buf))))
 
+  (defun my/tabspaces-new-scratch-workspace ()
+    "Open a new workspace whose only buffer is *scratch*.
+The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
+    (interactive)
+    (let* ((tab-bar-new-tab-choice (lambda () (get-buffer-create "*scratch*")))
+           (existing (tabspaces--list-tabspaces))
+           (name "*scratch*")
+           (n 1))
+      (while (member name existing)
+        (setq name (format "*scratch*<%d>" (cl-incf n))))
+      (tab-new)
+      (tab-rename name)
+      (delete-other-windows)
+      (switch-to-buffer "*scratch*")))
+
   ;; Covers the direct, --safe, and deferred-daemon restore paths, which all
   ;; funnel through `tabspaces-restore-session'.
   (advice-add 'tabspaces-restore-session :after #'my/tabspaces-cleanup-placeholder)
@@ -413,6 +428,7 @@ without having to remember this step."
     "pp" '(tabspaces-open-or-create-project-and-workspace :which-key "switch project")
     "pt" '(tabspaces-switch-or-create-workspace :which-key "switch workspace")
     "pr" '(tabspaces-rename-workspace :which-key "rename")
+    "ps" '(my/tabspaces-new-scratch-workspace :which-key "new scratch workspace")
 
     "q" '(:ignore t :which-key "quit")
     "qq" 'kill-emacs
