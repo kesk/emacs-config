@@ -652,13 +652,14 @@ With a single monitor, return nil so dslide opens an ordinary frame."
     (add-hook hook #'my/dslide-hide-evil-cursor))
 
   ;; `global-hl-line-mode' skips buffers where its variable is locally nil
-  (defun my/dslide-disable-hl-line ()
-    "Turn off current-line highlighting in the slide buffer."
+  (defun my/dslide-disable-editing-chrome ()
+    "Turn off current-line highlighting and line numbers in the slide buffer."
     (with-current-buffer (oref dslide--deck slide-buffer)
       (setq-local global-hl-line-mode nil)
-      (global-hl-line-unhighlight)))
+      (global-hl-line-unhighlight)
+      (display-line-numbers-mode -1)))
   (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
-    (add-hook hook #'my/dslide-disable-hl-line))
+    (add-hook hook #'my/dslide-disable-editing-chrome))
 
   ;; Evil's state maps shadow dslide's arrow keys, so rebind them per state.
   ;; Evil only picks up minor-mode state bindings on a keymap refresh, which
