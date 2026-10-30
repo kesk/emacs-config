@@ -651,13 +651,22 @@ With a single monitor, return nil so dslide opens an ordinary frame."
   (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
     (add-hook hook #'my/dslide-hide-evil-cursor))
 
-  ;; `global-hl-line-mode' skips buffers where its variable is locally nil
+  ;; `global-hl-line-mode' skips buffers where its variable is locally nil.
+  ;; org-indent's virtual indentation is a text property shared with the base
+  ;; buffer, and dslide's hidden drawers strip it from the line after them, so
+  ;; a slide's first list item ended up less indented than the rest.  An
+  ;; overlay (local to the slide buffer, and taking precedence over text
+  ;; properties) blanks it on slides while the notes keep it.
   (defun my/dslide-disable-editing-chrome ()
-    "Turn off current-line highlighting and line numbers in the slide buffer."
+    "Turn off line highlighting, line numbers and org-indent on slides."
     (with-current-buffer (oref dslide--deck slide-buffer)
       (setq-local global-hl-line-mode nil)
       (global-hl-line-unhighlight)
-      (display-line-numbers-mode -1)))
+      (display-line-numbers-mode -1)
+      (without-restriction
+        (let ((overlay (make-overlay (point-min) (point-max) nil nil t)))
+          (overlay-put overlay 'line-prefix "")
+          (overlay-put overlay 'wrap-prefix "")))))
   (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
     (add-hook hook #'my/dslide-disable-editing-chrome))
 
