@@ -500,6 +500,18 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
   ;; Agenda setup
   (setq org-agenda-files '("~/org/"))
 
+  ;; Babel: evaluate Clojure blocks through the running CIDER REPL
+  (setq org-babel-clojure-backend 'cider)
+
+  (defun my/org-confirm-babel-evaluate (lang _body)
+    "Skip the evaluation prompt for Clojure blocks, ask for everything else."
+    (not (string= lang "clojure")))
+  (setq org-confirm-babel-evaluate #'my/org-confirm-babel-evaluate)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+     (clojure . t)))
+
   (defun my/org-insert-current-date-inactive ()
     "Insert an inactive Org timestamp for today at point."
     (interactive)
@@ -586,6 +598,66 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     "h" '(verb-toggle-show-headers :which-key "toggle headers")
     "s" '(verb-show-request :which-key "show request")
     "w" '(verb-re-send-request-eww :which-key "re-send (eww)")))
+
+;;; 2.2.2 DSLIDE (Presentations from Org files)
+;; Each heading is a slide; src blocks on a slide run as steps when
+;; stepping forward, so Clojure demos evaluate live in CIDER.
+(use-package dslide
+  :after org
+  :commands (dslide-deck-start dslide-deck-develop dslide-deck-present)
+  :init
+  (my/local-leader-def
+    :keymaps 'org-mode-map
+    "p"  '(:ignore t :which-key "present")
+    "pp" '(dslide-deck-start :which-key "start presentation")
+    "pd" '(dslide-deck-develop :which-key "develop (with preview)")
+    "pP" '(dslide-deck-present :which-key "present (new frame + notes)"))
+  :config
+  (setq dslide-breadcrumb-separator " › ")
+
+  (defun my/dslide-enlarge-text ()
+    "Scale up text in the slide buffer."
+    (with-current-buffer (oref dslide--deck slide-buffer)
+      (text-scale-set 2)))
+  ;; `dslide-deck-present' runs its own hook instead of `dslide-start-hook'
+  (dolist (hook '(dslide-start-hook dslide-present-hook))
+    (add-hook hook #'my/dslide-enlarge-text))
+
+  ;; dslide hides the cursor by setting `cursor-type', but Evil resets it
+  ;; from its per-state cursor specs after every command.  Make those specs
+  ;; empty in the slide buffer only; the base buffer (notes) keeps its cursor.
+  (defun my/dslide-hide-evil-cursor ()
+    "Hide the Evil cursor in the slide buffer."
+    (with-current-buffer (oref dslide--deck slide-buffer)
+      (dolist (var '(evil-default-cursor
+                     evil-normal-state-cursor
+                     evil-motion-state-cursor))
+        (set (make-local-variable var) '(nil)))
+      (evil-refresh-cursor)))
+  (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
+    (add-hook hook #'my/dslide-hide-evil-cursor))
+
+  ;; Evil's state maps shadow dslide's arrow keys, so rebind them per state.
+  ;; Evil only picks up minor-mode state bindings on a keymap refresh, which
+  ;; doesn't happen when dslide-mode turns on in the new slide buffer.  The
+  ;; base buffer is refreshed too, so the deck can be driven from the notes
+  ;; window when presenting with `dslide-deck-present'.
+  (defun my/dslide-refresh-evil-keymaps ()
+    "Activate dslide's Evil bindings in the slide and base buffers."
+    (dolist (buffer (list (oref dslide--deck slide-buffer)
+                          (oref dslide--deck base-buffer)))
+      (with-current-buffer buffer
+        (evil-normalize-keymaps))))
+  (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
+    (add-hook hook #'my/dslide-refresh-evil-keymaps))
+  (general-define-key
+   :states '(normal motion)
+   :keymaps 'dslide-mode-map
+   "<right>" #'dslide-deck-forward
+   "<left>"  #'dslide-deck-backward
+   "<up>"    #'dslide-deck-start
+   "<down>"  #'dslide-deck-stop
+   "q"       #'dslide-deck-stop))
 
 ;;; 2.3 COMPLETION FRAMEWORK (Vertico + Consult + Marginalia)
 (use-package orderless
