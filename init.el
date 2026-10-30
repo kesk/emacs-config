@@ -615,6 +615,20 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
   :config
   (setq dslide-breadcrumb-separator " › ")
 
+  (defun my/dslide-present-frame-parameters ()
+    "Place the presentation frame maximized on another monitor, if any.
+With a single monitor, return nil so dslide opens an ordinary frame."
+    (let* ((current (alist-get 'geometry (frame-monitor-attributes)))
+           (other (seq-find (lambda (monitor)
+                              (not (equal (alist-get 'geometry monitor) current)))
+                            (display-monitor-attributes-list))))
+      (when other
+        (pcase-let ((`(,x ,y . ,_) (alist-get 'workarea other)))
+          ;; (+ N) allows negative positions, for a monitor left of or above
+          ;; the main one
+          `((left . (+ ,x)) (top . (+ ,y)) (fullscreen . maximized))))))
+  (setq dslide-present-frame-parameters #'my/dslide-present-frame-parameters)
+
   (defun my/dslide-enlarge-text ()
     "Scale up text in the slide buffer."
     (with-current-buffer (oref dslide--deck slide-buffer)
