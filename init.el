@@ -848,8 +848,13 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
                   `(lambda () (interactive) (tab-bar-select-tab ,(+ i 1)))))
 
 ;; Set initial frame size (width x height)
+;; Update default-frame-alist in place rather than setq'ing it: early-init.el
+;; already put the no-toolbar/menu-bar/scroll-bar settings there, and
+;; replacing the list would bring those back on every frame created after
+;; startup.  `alist-get' also keeps `SPC f R' from piling up duplicates.
 (setq initial-frame-alist '((width . 150) (height . 60)))
-(setq default-frame-alist '((width . 150) (height . 60)))
+(setf (alist-get 'width default-frame-alist) 150)
+(setf (alist-get 'height default-frame-alist) 60)
 
 (defun my/center-frame ()
   "Center the current frame."
