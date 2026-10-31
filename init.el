@@ -496,6 +496,9 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
   :config
   ;; You can add more Org-mode specific configurations here later
   (require 'org-tempo)
+  ;; <cl TAB / <el TAB insert a src block with the language filled in
+  (add-to-list 'org-structure-template-alist '("cl" . "src clojure"))
+  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 
   ;; Agenda setup
   (setq org-agenda-files '("~/org/"))
@@ -533,7 +536,8 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     "es" '(org-babel-execute-subtree :which-key "eval subtree")
     "ek" '(org-babel-remove-result-one-or-many :which-key "remove result")
     "ev" '(org-babel-expand-src-block :which-key "view expanded block")
-    "'" '(org-edit-special :which-key "edit block")))
+    "'" '(org-edit-special :which-key "edit block")
+    "i" '(org-insert-structure-template :which-key "insert block")))
 
 (use-package org-modern
   :hook
