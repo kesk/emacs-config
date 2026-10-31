@@ -502,11 +502,9 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
 
   ;; Babel: evaluate Clojure blocks through the running CIDER REPL
   (setq org-babel-clojure-backend 'cider)
-
-  (defun my/org-confirm-babel-evaluate (lang _body)
-    "Skip the evaluation prompt for Clojure blocks, ask for everything else."
-    (not (string= lang "clojure")))
-  (setq org-confirm-babel-evaluate #'my/org-confirm-babel-evaluate)
+  ;; Evaluation still asks for confirmation.  A presentation that should run
+  ;; without prompting opts in with a file-local
+  ;; `org-confirm-babel-evaluate: nil', which Emacs asks about on opening.
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((emacs-lisp . t)
