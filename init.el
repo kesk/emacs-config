@@ -525,7 +525,15 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     "dd" '(org-deadline :which-key "deadline")
     "ds" '(org-schedule :which-key "schedule")
     "di" '(my/org-insert-current-date-inactive :which-key "insert inactive")
-    "." '(org-time-stamp :which-key "timestamp")))
+    "." '(org-time-stamp :which-key "timestamp")
+    ;; Mirrors the "e" eval prefix under cider-mode-map
+    "e" '(:ignore t :which-key "eval")
+    "ee" '(org-babel-execute-src-block :which-key "eval block")
+    "eb" '(org-babel-execute-buffer :which-key "eval buffer")
+    "es" '(org-babel-execute-subtree :which-key "eval subtree")
+    "ek" '(org-babel-remove-result-one-or-many :which-key "remove result")
+    "ev" '(org-babel-expand-src-block :which-key "view expanded block")
+    "'" '(org-edit-special :which-key "edit block")))
 
 (use-package org-modern
   :hook
