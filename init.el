@@ -555,7 +555,7 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
    ;; Org Modern settings
    org-modern-star nil       ; Let org-superstar handle the stars
    org-modern-hide-stars nil ; Let org-superstar handle hiding
-   org-modern-table nil      ; keep standard table looking (or set to t)
+   org-modern-table t        ; draw tables with thin lines like the org-modern screenshots
    org-modern-list '((43 . "➤") (45 . "–") (42 . "•"))
    org-modern-todo-faces
    '(("TODO" :inverse-video t :inherit org-todo)
