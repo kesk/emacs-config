@@ -425,6 +425,7 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
 
     "p" '(:ignore t :which-key "project")
     "pk" '(tabspaces-close-workspace :which-key "close workspace")
+    "pK" '(tabspaces-kill-buffers-close-workspace :which-key "close workspace & kill buffers")
     "pp" '(tabspaces-open-or-create-project-and-workspace :which-key "switch project")
     "pt" '(tabspaces-switch-or-create-workspace :which-key "switch workspace")
     "pr" '(tabspaces-rename-workspace :which-key "rename")
