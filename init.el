@@ -1017,6 +1017,10 @@ a preceding word now matches too, which is harmless in output."
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  ;; Load without enabling: `toggle-theme' only finds variants among themes
+  ;; that are already loaded.  This must come before the active theme, since
+  ;; loading a doom theme overwrites the palette that `doom-color' reads.
+  (load-theme 'doom-gruvbox-light t t)
   (load-theme 'doom-gruvbox t)
 
   ;; Enable flashing mode-line on errors
