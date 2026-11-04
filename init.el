@@ -444,6 +444,7 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
     "tf" '(toggle-frame-maximized :which-key "maximize")
+    "tt" '(toggle-theme :which-key "theme")
     ;; These repeat: after the first press, plain +, - or 0 keeps adjusting.
     "t+" '(text-scale-adjust :which-key "font larger")
     "t-" '(text-scale-adjust :which-key "font smaller")
