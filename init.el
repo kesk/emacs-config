@@ -1047,6 +1047,12 @@ A nil APPEARANCE, as on builds without appearance support, means dark."
     (my/apply-system-appearance
      (if (custom-theme-enabled-p 'gruvbox-light-medium) 'dark 'light)))
 
+  ;; The themes don't set this face, so docstrings inherit the string colour.
+  ;; Use `gruvbox-light4' from each palette instead, one step above comments.
+  (custom-set-faces
+   '(font-lock-doc-face ((((background dark)) (:foreground "#a89984"))
+                         (t (:foreground "#7c6f64")))))
+
   ;; Pick the right variant during init rather than waiting for the hook,
   ;; which first runs after startup and would flash the wrong theme.
   (my/apply-system-appearance (bound-and-true-p ns-system-appearance))
