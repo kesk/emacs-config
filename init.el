@@ -1017,11 +1017,28 @@ a preceding word now matches too, which is harmless in output."
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;; Load without enabling: `toggle-theme' only finds variants among themes
-  ;; that are already loaded.  This must come before the active theme, since
-  ;; loading a doom theme overwrites the palette that `doom-color' reads.
-  (load-theme 'doom-gruvbox-light t t)
-  (load-theme 'doom-gruvbox t)
+  (defun my/apply-system-appearance (appearance)
+    "Enable the gruvbox variant matching the macOS APPEARANCE.
+A nil APPEARANCE, as on builds without appearance support, means dark."
+    (let* ((light (eq appearance 'light))
+           (theme (if light 'doom-gruvbox-light 'doom-gruvbox))
+           (other (if light 'doom-gruvbox 'doom-gruvbox-light)))
+      (unless (custom-theme-enabled-p theme)
+        (mapc #'disable-theme custom-enabled-themes)
+        ;; Load without enabling: `toggle-theme' only finds variants among
+        ;; themes that are already loaded.  This must come before the active
+        ;; theme, since loading a doom theme overwrites the palette that
+        ;; `doom-color' reads.
+        (unless (custom-theme-p other)
+          (load-theme other t t))
+        (load-theme theme t))))
+
+  ;; Pick the right variant during init rather than waiting for the hook,
+  ;; which first runs after startup and would flash the wrong theme.
+  (my/apply-system-appearance (bound-and-true-p ns-system-appearance))
+  ;; emacs-plus only; other builds simply don't follow the system.
+  (when (boundp 'ns-system-appearance-change-functions)
+    (add-hook 'ns-system-appearance-change-functions #'my/apply-system-appearance))
 
   ;; Enable flashing mode-line on errors
   (doom-themes-visual-bell-config)
