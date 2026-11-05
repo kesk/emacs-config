@@ -703,6 +703,45 @@ With a single monitor, return nil so dslide opens an ordinary frame."
         (evil-normalize-keymaps))))
   (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
     (add-hook hook #'my/dslide-refresh-evil-keymaps))
+
+  ;; dslide only looks for the slide buffer on the selected frame, and its
+  ;; contents view assumes the slide window is selected.  Driven from the notes
+  ;; window, <up> would display the slide buffer there instead of opening the
+  ;; contents, and <down> would stop the deck instead of leaving the contents.
+  (defun my/dslide-call-in-slide-window (command &rest args)
+    "Call COMMAND with the slide window selected, on whichever frame it is."
+    (let* ((slide-buffer (and (dslide-live-p) (oref dslide--deck slide-buffer)))
+           (window (and slide-buffer (get-buffer-window slide-buffer t))))
+      (if (or (null window) (eq window (selected-window)))
+          (apply command args)
+        ;; Stepping from the notes moves the buffer's point, not the window's
+        (set-window-point window (with-current-buffer slide-buffer (point)))
+        (with-selected-window window
+          (apply command args)
+          ;; `post-command-hook' will run in the notes buffer, so it won't
+          ;; reach the highlight's buffer-local hook
+          (when (dslide--contents-active-p)
+            (dslide--contents-hl-line))))))
+  (defun my/dslide-call-in-contents-window (command &rest args)
+    "Call COMMAND in the slide window if the contents view is showing."
+    (if (and (dslide-live-p)
+             (with-current-buffer (oref dslide--deck slide-buffer)
+               (dslide--contents-active-p)))
+        (apply #'my/dslide-call-in-slide-window command args)
+      (apply command args)))
+  ;; Opening the contents scrolls up unconditionally, which signals an error
+  ;; when the window is already at the top, as it is on the first slide.
+  (defun my/dslide-ignore-beginning-of-buffer (command &rest args)
+    "Call COMMAND, ignoring a `beginning-of-buffer' error."
+    (ignore-error beginning-of-buffer
+      (apply command args)))
+  (advice-add 'dslide-display-contents :around
+              #'my/dslide-ignore-beginning-of-buffer)
+  (advice-add 'dslide-deck-start :around #'my/dslide-call-in-slide-window)
+  ;; On a slide, stepping and stopping work from the notes as they are
+  (dolist (command '(dslide-deck-forward dslide-deck-backward dslide-deck-stop))
+    (advice-add command :around #'my/dslide-call-in-contents-window))
+
   (general-define-key
    :states '(normal motion)
    :keymaps 'dslide-mode-map
