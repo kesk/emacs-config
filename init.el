@@ -678,11 +678,12 @@ With a single monitor, return nil so dslide opens an ordinary frame."
   ;; overlay (local to the slide buffer, and taking precedence over text
   ;; properties) blanks it on slides while the notes keep it.
   (defun my/dslide-disable-editing-chrome ()
-    "Turn off line highlighting, line numbers and org-indent on slides."
+    "Turn off line highlighting, line numbers, linting and org-indent on slides."
     (with-current-buffer (oref dslide--deck slide-buffer)
       (setq-local global-hl-line-mode nil)
       (global-hl-line-unhighlight)
       (display-line-numbers-mode -1)
+      (flycheck-mode -1)
       (without-restriction
         (let ((overlay (make-overlay (point-min) (point-max) nil nil t)))
           (overlay-put overlay 'line-prefix "")
