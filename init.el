@@ -444,7 +444,7 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     "t" '(:ignore t :which-key "toggle")
     "tF" '(toggle-frame-fullscreen :which-key "fullscreen")
     "tf" '(toggle-frame-maximized :which-key "maximize")
-    "tt" '(my/toggle-theme :which-key "theme")
+    "tt" '(toggle-theme :which-key "theme")
     ;; These repeat: after the first press, plain +, - or 0 keeps adjusting.
     "t+" '(text-scale-adjust :which-key "font larger")
     "t-" '(text-scale-adjust :which-key "font smaller")
@@ -1018,47 +1018,42 @@ a preceding word now matches too, which is harmless in output."
   ;; Global settings (defaults)
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
         doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
 
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config))
-
-(use-package gruvbox-theme
-  ;; Requiring it would only define the extra `gruvbox' theme; the package
-  ;; autoloads already put the variants on `custom-theme-load-path'.
-  :no-require t
-  :config
   (defun my/apply-system-appearance (appearance)
     "Enable the gruvbox variant matching the macOS APPEARANCE.
 A nil APPEARANCE, as on builds without appearance support, means dark."
-    (let ((theme (if (eq appearance 'light)
-                     'gruvbox-light-medium
-                   'gruvbox-dark-medium)))
+    (let* ((light (eq appearance 'light))
+           (theme (if light 'doom-gruvbox-light 'doom-gruvbox))
+           (other (if light 'doom-gruvbox 'doom-gruvbox-light)))
       (unless (custom-theme-enabled-p theme)
         (mapc #'disable-theme custom-enabled-themes)
+        ;; Load without enabling: `toggle-theme' only finds variants among
+        ;; themes that are already loaded.  This must come before the active
+        ;; theme, since loading a doom theme overwrites the palette that
+        ;; `doom-color' reads.
+        (unless (custom-theme-p other)
+          (load-theme other t t))
         (load-theme theme t))))
 
-  ;; The built-in `toggle-theme' can't be used: it finds variants through the
-  ;; theme's :family property, which these themes don't declare.
-  (defun my/toggle-theme ()
-    "Switch between the dark and light gruvbox variants."
-    (interactive)
-    (my/apply-system-appearance
-     (if (custom-theme-enabled-p 'gruvbox-light-medium) 'dark 'light)))
-
-  ;; The themes don't set this face, so docstrings inherit the string colour.
-  ;; Use `gruvbox-light4' from each palette instead, one step above comments.
+  ;; doom-gruvbox's docstrings are nearly the text colour, and the light
+  ;; variant's match its strings.  Use a muted aqua instead, the one hue the
+  ;; dark variant's syntax colours leave free.
   (custom-set-faces
-   '(font-lock-doc-face ((((background dark)) (:foreground "#a89984"))
-                         (t (:foreground "#7c6f64")))))
+   '(font-lock-doc-face ((((background dark)) (:foreground "#689d6a"))
+                         (t (:foreground "#427b58")))))
 
   ;; Pick the right variant during init rather than waiting for the hook,
   ;; which first runs after startup and would flash the wrong theme.
   (my/apply-system-appearance (bound-and-true-p ns-system-appearance))
   ;; emacs-plus only; other builds simply don't follow the system.
   (when (boundp 'ns-system-appearance-change-functions)
-    (add-hook 'ns-system-appearance-change-functions #'my/apply-system-appearance)))
+    (add-hook 'ns-system-appearance-change-functions #'my/apply-system-appearance))
+
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
 
 ;;; 5. MODELINE
 (use-package doom-modeline
