@@ -576,6 +576,11 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
      ("KILL" :inverse-video t :inherit org-todo)
      ("WORK" :inverse-video t :inherit org-todo)))
 
+  ;; Otherwise Clojure blocks use clojure-mode (a cider dependency), which looks
+  ;; different from .clj files and gives the / in :foo/bar the `default' face.
+  (with-eval-after-load 'org-src
+    (add-to-list 'org-src-lang-modes '("clojure" . clojure-ts)))
+
   (custom-set-faces
    '(org-level-1 ((t (:inherit outline-1 :height 1.4))))
    '(org-level-2 ((t (:inherit outline-2 :height 1.3))))
@@ -1219,6 +1224,20 @@ works after unpacking them into a running session."
   (setopt clojure-ts-indent-style 'fixed)
 
   (add-hook 'clojure-ts-mode-hook #'my/lisp-syntax-setup)
+
+  (defun my/clojure-ts-fix-keyword-delimiter ()
+    "Stop the / in namespaced keywords from covering the background.
+clojure-ts-mode gives it the `default' face, which carries a background and so
+hides anything beneath it, such as an Org source block's."
+    (when (treesit-ready-p 'clojure t)
+      (setq-local treesit-font-lock-settings
+                  (append treesit-font-lock-settings
+                          (treesit-font-lock-rules
+                           :language 'clojure
+                           :feature 'keyword
+                           :override t
+                           '((kwd_lit delimiter: _ @font-lock-delimiter-face)))))))
+  (add-hook 'clojure-ts-mode-hook #'my/clojure-ts-fix-keyword-delimiter)
 
   (general-define-key
    :states '(normal visual insert emacs)
