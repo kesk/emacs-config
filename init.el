@@ -528,6 +528,11 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     (interactive)
     (org-insert-time-stamp (current-time) nil t))
 
+  (defun my/org-babel-remove-all-results ()
+    "Remove the results of every source block in the current buffer."
+    (interactive)
+    (org-babel-remove-result-one-or-many t))
+
   ;; Local leader bindings for Org
   (my/local-leader-def
     :keymaps 'org-mode-map
@@ -545,6 +550,7 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
     "eb" '(org-babel-execute-buffer :which-key "eval buffer")
     "es" '(org-babel-execute-subtree :which-key "eval subtree")
     "ek" '(org-babel-remove-result-one-or-many :which-key "remove result")
+    "eK" '(my/org-babel-remove-all-results :which-key "remove all results")
     "ev" '(org-babel-expand-src-block :which-key "view expanded block")
     "'" '(org-edit-special :which-key "edit block")
     "i" '(org-insert-structure-template :which-key "insert block")))
