@@ -573,8 +573,8 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
    org-insert-heading-respect-content t
 
    ;; Org Modern settings
-   org-modern-star nil       ; Let org-superstar handle the stars
-   org-modern-hide-stars nil ; Let org-superstar handle hiding
+   org-modern-star 'replace  ; ◉○◈◇✳ per level (org-modern-replace-stars)
+   org-modern-hide-stars 'leading ; hide leading stars so headings line up
    org-modern-table t        ; draw tables with thin lines like the org-modern screenshots
    org-modern-list '((43 . "➤") (45 . "–") (42 . "•"))
    org-modern-todo-faces
@@ -597,13 +597,6 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
    '(org-level-3 ((t (:inherit outline-3 :height 1.2))))
    '(org-level-4 ((t (:inherit outline-4 :height 1.1))))
    '(org-level-5 ((t (:inherit outline-5 :height 1.0))))))
-
-(use-package org-superstar
-  :after org
-  :hook (org-mode . org-superstar-mode)
-  :config
-  (setq org-superstar-headline-bullets-list '("◉" "○" "◈" "◇" "✳"))
-  (setq org-superstar-special-todo-items t))
 
 (use-package org-appear
   :hook (org-mode . org-appear-mode))
