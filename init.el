@@ -503,11 +503,21 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
   (org-mode . (lambda () (display-line-numbers-mode -1)))
   ;; A little air between lines, in prose buffers only.
   (org-mode . (lambda () (setq-local line-spacing 0.2)))
+  (org-mode . my/org-inhibit-angle-pairing)
   :init
   (setq org-directory "~/org/")
   ;; Off: org-modern skips its fringe bracket on src blocks under org-indent-mode.
   (setq org-startup-indented nil)
   (setq org-hide-emphasis-markers t)
+
+  ;; Org gives < and > paren syntax (for timestamps), so `electric-pair-mode'
+  ;; turned <cl into <cl> and org-tempo's <cl TAB no longer expanded cleanly.
+  (defun my/org-inhibit-angle-pairing ()
+    "Keep `electric-pair-mode' from pairing < in this Org buffer."
+    (let ((inhibit electric-pair-inhibit-predicate))
+      (setq-local electric-pair-inhibit-predicate
+                  (lambda (char)
+                    (or (eq char ?<) (funcall inhibit char))))))
   (setq calendar-week-start-day 1) ;; Monday as first day of week
   :config
   ;; You can add more Org-mode specific configurations here later
