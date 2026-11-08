@@ -586,7 +586,7 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
 
    ;; Org Modern settings
    org-modern-star 'replace  ; ◉○◈◇✳ per level (org-modern-replace-stars)
-   org-modern-hide-stars 'leading ; hide leading stars so headings line up
+   org-modern-hide-stars "·" ; a dot per leading star, to show the depth
    org-modern-table t        ; draw tables with thin lines like the org-modern screenshots
    org-modern-list '((43 . "➤") (45 . "–") (42 . "•"))
    org-modern-todo-faces
