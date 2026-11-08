@@ -500,7 +500,8 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
 (use-package org
   :init
   (setq org-directory "~/org/")
-  (setq org-startup-indented t)
+  ;; Off: org-modern skips its fringe bracket on src blocks under org-indent-mode.
+  (setq org-startup-indented nil)
   (setq org-hide-emphasis-markers t)
   (setq calendar-week-start-day 1) ;; Monday as first day of week
   :config
@@ -687,7 +688,9 @@ With a single monitor, return nil so dslide opens an ordinary frame."
   ;; buffer, and dslide's hidden drawers strip it from the line after them, so
   ;; a slide's first list item ended up less indented than the rest.  An
   ;; overlay (local to the slide buffer, and taking precedence over text
-  ;; properties) blanks it on slides while the notes keep it.
+  ;; properties) blanks it on slides while the notes keep it.  Only when
+  ;; org-indent is on, though: org-modern draws its src-block fringe bracket
+  ;; with `line-prefix' too, and the overlay would hide it.
   (defun my/dslide-disable-editing-chrome ()
     "Turn off line highlighting, line numbers, linting and org-indent on slides."
     (with-current-buffer (oref dslide--deck slide-buffer)
@@ -695,10 +698,11 @@ With a single monitor, return nil so dslide opens an ordinary frame."
       (global-hl-line-unhighlight)
       (display-line-numbers-mode -1)
       (flycheck-mode -1)
-      (without-restriction
-        (let ((overlay (make-overlay (point-min) (point-max) nil nil t)))
-          (overlay-put overlay 'line-prefix "")
-          (overlay-put overlay 'wrap-prefix "")))))
+      (when (bound-and-true-p org-indent-mode)
+        (without-restriction
+          (let ((overlay (make-overlay (point-min) (point-max) nil nil t)))
+            (overlay-put overlay 'line-prefix "")
+            (overlay-put overlay 'wrap-prefix ""))))))
   (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
     (add-hook hook #'my/dslide-disable-editing-chrome))
 
