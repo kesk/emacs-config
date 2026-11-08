@@ -498,6 +498,9 @@ The tab is named \"*scratch*\", or \"*scratch*<N>\" if that is taken."
 
 ;;; 2.2 ORG-MODE
 (use-package org
+  :hook
+  ;; Line numbers sit between the text and org-modern's fringe bracket.
+  (org-mode . (lambda () (display-line-numbers-mode -1)))
   :init
   (setq org-directory "~/org/")
   ;; Off: org-modern skips its fringe bracket on src blocks under org-indent-mode.
