@@ -652,12 +652,43 @@ With a single monitor, return nil so dslide opens an ordinary frame."
            (other (seq-find (lambda (monitor)
                               (not (equal (alist-get 'geometry monitor) current)))
                             (display-monitor-attributes-list))))
-      (when other
-        (pcase-let ((`(,x ,y . ,_) (alist-get 'workarea other)))
-          ;; (+ N) allows negative positions, for a monitor left of or above
-          ;; the main one
-          `((left . (+ ,x)) (top . (+ ,y)) (fullscreen . maximized))))))
+      (append
+       my/dslide-frame-padding
+       (when other
+         (pcase-let ((`(,x ,y . ,_) (alist-get 'workarea other)))
+           ;; (+ N) allows negative positions, for a monitor left of or above
+           ;; the main one
+           `((left . (+ ,x)) (top . (+ ,y)) (fullscreen . maximized)))))))
   (setq dslide-present-frame-parameters #'my/dslide-present-frame-parameters)
+
+  ;; Padding around the slides, as in the org-modern screenshots.
+  ;; `dslide-deck-present' gets it from the frame parameters above, since it
+  ;; makes a frame of its own.  The other modes reuse the current frame, so
+  ;; pad it on start and put the old values back on stop.
+  (defvar my/dslide-frame-padding
+    '((internal-border-width . 20) (right-divider-width . 20))
+    "Frame parameters that pad the frame a presentation runs in.")
+  (defvar my/dslide-saved-frame-padding nil
+    "The (FRAME . PARAMETERS) that were in effect before padding FRAME.")
+  (defun my/dslide-pad-frame ()
+    "Pad the selected frame for the presentation, remembering its old values."
+    (unless my/dslide-saved-frame-padding
+      (let ((frame (selected-frame)))
+        (setq my/dslide-saved-frame-padding
+              (cons frame (mapcar (lambda (param)
+                                    (cons (car param)
+                                          (frame-parameter frame (car param))))
+                                  my/dslide-frame-padding)))
+        (modify-frame-parameters frame my/dslide-frame-padding))))
+  (defun my/dslide-unpad-frame ()
+    "Restore the padding `my/dslide-pad-frame' changed."
+    (pcase-let ((`(,frame . ,params) my/dslide-saved-frame-padding))
+      (when (frame-live-p frame)
+        (modify-frame-parameters frame params)))
+    (setq my/dslide-saved-frame-padding nil))
+  (dolist (hook '(dslide-start-hook dslide-develop-hook))
+    (add-hook hook #'my/dslide-pad-frame))
+  (add-hook 'dslide-stop-hook #'my/dslide-unpad-frame)
 
   (defun my/dslide-enlarge-text ()
     "Scale up text in the slide buffer."
@@ -961,6 +992,26 @@ With a single monitor, return nil so dslide opens an ordinary frame."
 (setq initial-frame-alist '((width . 150) (height . 60)))
 (setf (alist-get 'width default-frame-alist) 150)
 (setf (alist-get 'height default-frame-alist) 60)
+
+;; A little padding around the frame and between side-by-side windows.  This
+;; also updates `default-frame-alist', so new frames get it too.
+;; Presentations pad more (see `my/dslide-frame-padding').  Colour the border
+;; and dividers like the background so they read as empty space, not lines.
+(modify-all-frames-parameters
+ '((internal-border-width . 10)
+   (right-divider-width . 10)))
+
+(defun my/blend-window-dividers (&rest _)
+  "Colour the window dividers and frame border like the default background."
+  (let ((bg (face-attribute 'default :background)))
+    (dolist (face '(window-divider
+                    window-divider-first-pixel
+                    window-divider-last-pixel))
+      (face-spec-reset-face face)
+      (set-face-foreground face bg))
+    (set-face-background 'internal-border bg)))
+;; Re-run on every theme switch, e.g. when macOS flips light/dark.
+(add-hook 'enable-theme-functions #'my/blend-window-dividers)
 
 (defun my/center-frame ()
   "Center the current frame."
