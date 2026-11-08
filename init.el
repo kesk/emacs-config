@@ -708,6 +708,26 @@ With a single monitor, return nil so dslide opens an ordinary frame."
   (dolist (hook '(dslide-start-hook dslide-present-hook))
     (add-hook hook #'my/dslide-enlarge-text))
 
+  ;; Slides drop the depth dots in front of headings and just hide the
+  ;; leading stars.  org-modern builds its font-lock rules when the mode
+  ;; turns on, so restart it in the slide buffer.  The slide buffer is an
+  ;; indirect one sharing text properties with the base buffer, so the notes
+  ;; may show the slide style too until the deck stops and they're refontified.
+  (defun my/dslide-hide-leading-stars ()
+    "Hide leading heading stars in the slide buffer instead of dotting them."
+    (with-current-buffer (oref dslide--deck slide-buffer)
+      (when (bound-and-true-p org-modern-mode)
+        (setq-local org-modern-hide-stars 'leading)
+        (org-modern-mode -1)
+        (org-modern-mode 1))))
+  (defun my/dslide-refontify-notes ()
+    "Refontify the base buffer, which dslide makes current when it stops."
+    (when (bound-and-true-p org-modern-mode)
+      (font-lock-flush)))
+  (dolist (hook '(dslide-start-hook dslide-present-hook dslide-develop-hook))
+    (add-hook hook #'my/dslide-hide-leading-stars))
+  (add-hook 'dslide-stop-hook #'my/dslide-refontify-notes)
+
   ;; dslide hides the cursor by setting `cursor-type', but Evil resets it
   ;; from its per-state cursor specs after every command.  Make those specs
   ;; empty in the slide buffer only; the base buffer (notes) keeps its cursor.
